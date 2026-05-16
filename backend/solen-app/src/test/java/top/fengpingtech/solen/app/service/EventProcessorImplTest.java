@@ -3,7 +3,6 @@ package top.fengpingtech.solen.app.service;
 import org.junit.jupiter.api.Test;
 import top.fengpingtech.solen.app.domain.ConnectionStatus;
 import top.fengpingtech.solen.app.domain.DeviceDomain;
-import top.fengpingtech.solen.app.domain.EventDomain;
 import top.fengpingtech.solen.app.persistence.event.EventJdbcWriter;
 import top.fengpingtech.solen.app.repository.ConnectionRepository;
 import top.fengpingtech.solen.app.repository.DeviceRepository;
@@ -20,6 +19,7 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -59,7 +59,10 @@ class EventProcessorImplTest {
         assertEquals(Double.valueOf(24.293282d), device.getLat());
         assertEquals(Double.valueOf(116.113869d), device.getLng());
         verify(deviceRepository).save(device);
-        verify(eventJdbcWriter).insert(any(List.class));
+        verify(eventJdbcWriter).insert(argThat(list -> list.size() == 1
+                && list.get(0).getEventId().equals(1116L)
+                && list.get(0).getType() == EventType.LOCATION_CHANGE
+                && list.get(0).getDevice() == device));
     }
 
     private void invokeProcessEventsInternal(EventProcessorImpl processor, List<Event> events) throws Exception {
