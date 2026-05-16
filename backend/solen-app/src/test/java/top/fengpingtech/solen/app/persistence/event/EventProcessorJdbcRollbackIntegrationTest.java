@@ -13,6 +13,9 @@ import top.fengpingtech.solen.app.service.EventProcessorImpl;
 import top.fengpingtech.solen.server.model.ConnectionEvent;
 import top.fengpingtech.solen.server.model.EventType;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Date;
 import java.util.UUID;
@@ -22,8 +25,16 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @SpringBootTest(classes = SolenApplication.class)
 class EventProcessorJdbcRollbackIntegrationTest {
-    private static final String DATASOURCE_URL = "jdbc:sqlite:/tmp/opencode/event-processor-rollback-"
-            + UUID.randomUUID() + ".sqlite";
+    private static final String DATASOURCE_URL = sqliteUrl("event-processor-rollback-");
+
+    private static String sqliteUrl(String prefix) {
+        try {
+            Path dir = Files.createDirectories(Path.of(System.getProperty("java.io.tmpdir"), "opencode"));
+            return "jdbc:sqlite:" + dir.resolve(prefix + UUID.randomUUID() + ".sqlite").toString().replace('\\', '/');
+        } catch (IOException e) {
+            throw new IllegalStateException("failed to prepare sqlite test path", e);
+        }
+    }
 
     @DynamicPropertySource
     static void overrideDatasource(DynamicPropertyRegistry registry) {

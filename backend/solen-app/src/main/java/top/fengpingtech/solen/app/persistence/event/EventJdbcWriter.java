@@ -7,6 +7,7 @@ import top.fengpingtech.solen.app.domain.EventDomain;
 
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
+import java.util.Date;
 import java.util.List;
 
 @Component
@@ -31,10 +32,11 @@ public class EventJdbcWriter {
 
         jdbcTemplate.batchUpdate(INSERT_SQL, events, events.size(), (PreparedStatement ps, EventDomain event) -> {
             EventJdbcRow row = mapper.toRow(event);
+            Date eventTime = row.getTime() != null ? row.getTime() : new Date();
             ps.setLong(1, row.getEventId());
             ps.setString(2, row.getDeviceId());
             ps.setString(3, row.getType());
-            ps.setTimestamp(4, new Timestamp(row.getTime().getTime()));
+            ps.setTimestamp(4, new Timestamp(eventTime.getTime()));
             ps.setString(5, row.getDetails());
         });
     }

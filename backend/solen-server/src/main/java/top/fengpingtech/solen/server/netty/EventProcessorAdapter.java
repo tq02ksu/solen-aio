@@ -176,6 +176,7 @@ public class EventProcessorAdapter extends ChannelDuplexHandler {
             event.setEventId(eventIdGenerator.nextVal());
             event.setDeviceId(deviceId);
             event.setConnectionId(ctx.channel().id().asLongText());
+            event.setTime(new Date());
             delegate.processEvents(Collections.singletonList(event));
         }
     }

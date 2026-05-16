@@ -1,5 +1,6 @@
 package top.fengpingtech.solen.app.persistence.event;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,16 +15,28 @@ import top.fengpingtech.solen.app.repository.DeviceRepository;
 import top.fengpingtech.solen.app.repository.EventRepository;
 import top.fengpingtech.solen.server.model.EventType;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Date;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 @SpringBootTest(classes = SolenApplication.class)
 class EventJdbcWriterIntegrationTest {
-    private static final String DATASOURCE_URL = "jdbc:sqlite:/tmp/opencode/event-jdbc-writer-"
-            + UUID.randomUUID() + ".sqlite";
+    private static final String DATASOURCE_URL = sqliteUrl("event-jdbc-writer-");
+
+    private static String sqliteUrl(String prefix) {
+        try {
+            Path dir = Files.createDirectories(Path.of(System.getProperty("java.io.tmpdir"), "opencode"));
+            return "jdbc:sqlite:" + dir.resolve(prefix + UUID.randomUUID() + ".sqlite").toString().replace('\\', '/');
+        } catch (IOException e) {
+            throw new IllegalStateException("failed to prepare sqlite test path", e);
+        }
+    }
 
     @DynamicPropertySource
     static void overrideDatasource(DynamicPropertyRegistry registry) {
@@ -42,6 +55,14 @@ class EventJdbcWriterIntegrationTest {
 
     @Autowired
     private EventJdbcWriter eventJdbcWriter;
+
+    @BeforeEach
+    void clearData() {
+        transactionTemplate.executeWithoutResult(status -> {
+            eventRepository.deleteAll();
+            deviceRepository.deleteAll();
+        });
+    }
 
     @Test
     void writesEventsReadableThroughJpa() {
@@ -77,5 +98,39 @@ class EventJdbcWriterIntegrationTest {
         assertEquals("device-jdbc-write", saved.getDevice().getDeviceId());
         assertEquals(EventType.MESSAGE_RECEIVING, saved.getType());
         assertEquals("payload", saved.getDetails().get("content"));
+    }
+
+    @Test
+    void writesEventsWithFallbackTimeWhenTimestampIsNull() {
+        DeviceDomain device = transactionTemplate.execute(status -> deviceRepository.save(DeviceDomain.builder()
+                .deviceId("device-jdbc-null-time")
+                .status(ConnectionStatus.NORMAL)
+                .lac(1L)
+                .ci(1L)
+                .inputStat(0)
+                .outputStat(0)
+                .rssi(-50)
+                .voltage(3.7d)
+                .temperature(25.0d)
+                .gravity(0)
+                .uptime(1)
+                .lat(0.0d)
+                .lng(0.0d)
+                .build()));
+
+        eventJdbcWriter.insert(Collections.singletonList(EventDomain.builder()
+                .eventId(1002L)
+                .device(device)
+                .type(EventType.DISCONNECT)
+                .time(null)
+                .details(Collections.emptyMap())
+                .build()));
+
+        EventDomain saved = eventRepository.findById(1002L)
+                .orElseThrow(() -> new AssertionError("missing JDBC-written event with fallback time"));
+
+        assertNotNull(saved.getTime());
+        assertEquals(EventType.DISCONNECT, saved.getType());
+        assertEquals("device-jdbc-null-time", saved.getDevice().getDeviceId());
     }
 }
