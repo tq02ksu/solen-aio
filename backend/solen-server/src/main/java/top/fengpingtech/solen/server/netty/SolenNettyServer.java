@@ -143,8 +143,12 @@ public class SolenNettyServer implements SolenServer {
 
     @Override
     public void stop() {
+        if (future == null) {
+            return;
+        }
+
         try {
-            future.channel().closeFuture().addListener(
+            future.channel().close().addListener(
                     (f) -> executors.forEach(AbstractEventExecutorGroup::shutdownGracefully)).sync();
         } catch (InterruptedException e) {
             logger.info("error while close server!", e);

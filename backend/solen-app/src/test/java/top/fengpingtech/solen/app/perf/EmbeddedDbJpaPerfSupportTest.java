@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 import java.nio.file.Path;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -73,7 +74,7 @@ class EmbeddedDbJpaPerfSupportTest {
             List<String> deviceIds = context.jdbcTemplate().queryForList(
                     "select device_id from device order by device_id limit 5",
                     String.class);
-            assertEquals(List.of(), deviceIds);
+            assertEquals(Collections.emptyList(), deviceIds);
         } finally {
             context.close();
         }

@@ -7,12 +7,18 @@ spring:
   mvc:
     date-format: yyyy-MM-dd HH:mm:ss
   datasource:
-    url: jdbc:hsqldb:file:data/solen-data
-    username: sa
+    driver-class-name: org.sqlite.JDBC
+    url: jdbc:sqlite:data/solen-data.sqlite
+    username: ""
+    password: ""
+  jpa:
+    database-platform: top.fengpingtech.solen.app.persistence.sqlite.SQLiteDialect
+    hibernate:
+      ddl-auto: none
   sql:
     init:
       mode: always
-      schema-locations: [ classpath:schema.sql ]
+      schema-locations: [ classpath:schema-sqlite.sql ]
 solen:
   server:
     port: 7889

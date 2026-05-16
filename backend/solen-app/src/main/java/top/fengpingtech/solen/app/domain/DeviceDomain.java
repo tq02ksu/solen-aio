@@ -70,6 +70,6 @@ public class DeviceDomain {
     @Convert(converter = ZeroDoubleNotNullConverter.class)
     private Double lat;
 
-    @OneToMany
+    @OneToMany(mappedBy = "device")
     private List<ConnectionDomain> connection;
 }

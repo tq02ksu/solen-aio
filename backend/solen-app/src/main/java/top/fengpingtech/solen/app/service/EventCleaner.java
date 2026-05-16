@@ -4,7 +4,7 @@ import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import top.fengpingtech.solen.app.config.SolenServerProperties;
-import top.fengpingtech.solen.app.repository.EventRepository;
+import top.fengpingtech.solen.app.persistence.event.EventJdbcCleaner;
 
 import javax.annotation.PostConstruct;
 import java.time.*;
@@ -21,15 +21,15 @@ public class EventCleaner {
 
     private final SolenServerProperties serverProperties;
 
-    private final EventRepository eventRepository;
+    private final EventJdbcCleaner eventJdbcCleaner;
 
     private final ScheduledExecutorService executorService;
 
     public EventCleaner(TransactionTemplate transactionTemplate, SolenServerProperties serverProperties,
-                        EventRepository eventRepository) {
+                        EventJdbcCleaner eventJdbcCleaner) {
         this.transactionTemplate = transactionTemplate;
         this.serverProperties = serverProperties;
-        this.eventRepository = eventRepository;
+        this.eventJdbcCleaner = eventJdbcCleaner;
         CustomizableThreadFactory threadFactory = new CustomizableThreadFactory();
         threadFactory.setDaemon(true);
         threadFactory.setThreadNamePrefix("event-cleaner-");
@@ -49,7 +49,7 @@ public class EventCleaner {
             ZoneId zoneId = ZoneId.systemDefault();
             Instant instant = now.minus(retention).atZone(zoneId).toInstant();
             Date date = Date.from(instant);
-            eventRepository.deleteByTimeLessThan(date);
+            eventJdbcCleaner.deleteBefore(date);
             return null;
         });
     }

@@ -3,6 +3,8 @@ package top.fengpingtech.solen.app.service;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
+import top.fengpingtech.solen.app.persistence.event.EventJdbcWriter;
 import top.fengpingtech.solen.app.domain.*;
 import top.fengpingtech.solen.app.repository.ConnectionRepository;
 import top.fengpingtech.solen.app.repository.DeviceRepository;
@@ -10,13 +12,11 @@ import top.fengpingtech.solen.app.repository.EventRepository;
 import top.fengpingtech.solen.server.EventProcessor;
 import top.fengpingtech.solen.server.model.*;
 
-import javax.transaction.Transactional;
 import java.util.*;
 
 import static top.fengpingtech.solen.app.domain.CoordinateSystem.WGS84;
 
 @Service
-@Transactional
 public class EventProcessorImpl implements EventProcessor {
     private static final Logger logger = LoggerFactory.getLogger(EventProcessorImpl.class);
 
@@ -26,23 +26,35 @@ public class EventProcessorImpl implements EventProcessor {
 
     private final EventRepository eventRepository;
 
+    private final EventJdbcWriter eventJdbcWriter;
+
+    private final TransactionTemplate transactionTemplate;
+
     public EventProcessorImpl(DeviceRepository deviceRepository,
-                              ConnectionRepository connectionRepository, EventRepository eventRepository) {
+                              ConnectionRepository connectionRepository,
+                              EventRepository eventRepository,
+                              EventJdbcWriter eventJdbcWriter,
+                              TransactionTemplate transactionTemplate) {
         this.deviceRepository = deviceRepository;
         this.connectionRepository = connectionRepository;
         this.eventRepository = eventRepository;
+        this.eventJdbcWriter = eventJdbcWriter;
+        this.transactionTemplate = transactionTemplate;
     }
 
     @Override
     public void processEvents(List<Event> events) {
         try {
-            processEventsInternal(events);
+            transactionTemplate.execute(status -> {
+                processEventsInternal(events);
+                return null;
+            });
         } catch (Throwable e) {
             logger.error("error while process events: {}", events, e);
         }
     }
 
-    public void processEventsInternal(List<Event> events) {
+    private void processEventsInternal(List<Event> events) {
         List<EventDomain> list = new ArrayList<>();
 
         for (Event event : events) {
@@ -74,7 +86,7 @@ public class EventProcessorImpl implements EventProcessor {
             }
         }
 
-        eventRepository.saveAll(list);
+        eventJdbcWriter.insert(list);
     }
 
     private EventDomain processLocationChange(LocationEvent event) {

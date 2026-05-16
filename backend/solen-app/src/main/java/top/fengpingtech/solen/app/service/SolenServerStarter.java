@@ -10,6 +10,7 @@ import top.fengpingtech.solen.server.config.ServerProperties;
 import top.fengpingtech.solen.server.netty.SolenNettyServer;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Component
@@ -40,6 +41,13 @@ public class SolenServerStarter {
         serverProperties.setEventIdGenerator(new AtomicLong(maxId == null ? 0 : maxId + 1)::getAndIncrement);
         server = new SolenNettyServer(serverProperties);
         server.start();
+    }
+
+    @PreDestroy
+    public void destroy() {
+        if (server != null) {
+            server.stop();
+        }
     }
 
     public DeviceService getDeviceService() {

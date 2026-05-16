@@ -2,10 +2,11 @@ package top.fengpingtech.solen.app.perf;
 
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ClassPathResource;
@@ -218,11 +219,13 @@ final class EmbeddedDbJpaPerfSupport {
     }
 
     @SpringBootApplication
+    @ConditionalOnProperty(name = "perf.variant")
     @Import(TestJpaConfiguration.class)
     static class TestJpaApplication {
     }
 
-    @Configuration
+    @TestConfiguration
+    @ConditionalOnProperty(name = "perf.variant")
     @EnableTransactionManagement
     @EnableJpaRepositories(basePackages = "top.fengpingtech.solen.app.repository")
     static class TestJpaConfiguration {
