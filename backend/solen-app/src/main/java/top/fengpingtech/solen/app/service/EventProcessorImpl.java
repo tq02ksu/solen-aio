@@ -95,8 +95,8 @@ public class EventProcessorImpl implements EventProcessor {
         if (optionalDeviceDomain.isPresent()) {
             Coordinate coordinate = new Coordinate(WGS84, event.getLng(), event.getLat());
             DeviceDomain device = optionalDeviceDomain.get();
-            if (!device.getLat().equals(event.getLat())
-                    || !device.getLng().equals(event.getLng())) {
+            if (!Objects.equals(device.getLat(), event.getLat())
+                    || !Objects.equals(device.getLng(), event.getLng())) {
                 device.setLng(event.getLng());
                 device.setLat(event.getLat());
                 deviceRepository.save(device);
