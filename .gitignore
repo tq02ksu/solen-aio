@@ -10,11 +10,11 @@
 # Backend
 /backend/**/target/
 !/backend/.mvn/wrapper/maven-wrapper.jar
-/backend/log
-/backend/logs
-/backend/build_submitter.log
-/backend/output
-/backend/data
+/backend/**/log
+/backend/**/logs
+/backend/**/build_submitter.log
+/backend/**/output
+/backend/**/data
 
 # Backend IDE/project files
 /backend/.apt_generated
@@ -39,4 +39,3 @@
 .idea/
 *.iml
 .DS_Store
-
