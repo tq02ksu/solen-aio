@@ -1,0 +1,42 @@
+# Frontend
+/frontend/node_modules/
+/frontend/build/
+/frontend/dist/
+/frontend/.happypack
+/frontend/npm-debug.log*
+/frontend/yarn-debug.log*
+/frontend/yarn-error.log*
+
+# Backend
+/backend/**/target/
+!/backend/.mvn/wrapper/maven-wrapper.jar
+/backend/log
+/backend/logs
+/backend/build_submitter.log
+/backend/output
+/backend/data
+
+# Backend IDE/project files
+/backend/.apt_generated
+/backend/.classpath
+/backend/.factorypath
+/backend/.project
+/backend/.settings
+/backend/.springBeans
+/backend/.sts4-cache
+/backend/.idea
+/backend/*.iws
+/backend/*.iml
+/backend/*.ipr
+/backend/nbproject/private/
+/backend/build/
+/backend/nbbuild/
+/backend/dist/
+/backend/nbdist/
+/backend/.nb-gradle/
+
+# General IDE/system files
+.idea/
+*.iml
+.DS_Store
+
