@@ -7,23 +7,9 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 public class SecurityContextFilter implements Filter {
-    private static final ThreadLocal<String> PRINCIPAL_HOLDER = new ThreadLocal<>();
-
-    public static void setPrincipal(String principal) {
-        PRINCIPAL_HOLDER.set(principal);
-    }
-
-    public static String getPrincipal() {
-        return PRINCIPAL_HOLDER.get();
-    }
-
-    public static void clear() {
-        PRINCIPAL_HOLDER.remove();
-    }
 
     @Override
     public void init(FilterConfig filterConfig) throws ServletException {

@@ -6,6 +6,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -14,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import top.fengpingtech.solen.app.auth.AuthService;
 import top.fengpingtech.solen.app.controller.bean.DeviceBean;
 import top.fengpingtech.solen.app.controller.bean.DeviceQueryRequest;
@@ -99,11 +101,11 @@ public class DeviceController {
         Optional<DeviceDomain> device = deviceRepository.findById(deviceId);
 
         if (!device.isPresent()) {
-            throw new IllegalArgumentException("device not found!");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "device not found!");
         }
         DeviceDomain domain = device.get();
         if (!authService.canVisit(domain)) {
-            throw new IllegalArgumentException("can not visit the device");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "can not visit the device");
         }
         return deviceMapper.mapToBean(domain);
 
@@ -115,11 +117,11 @@ public class DeviceController {
             @RequestParam(required = false, defaultValue = "false") boolean force) {
         Optional<DeviceDomain> device = deviceRepository.findById(deviceId);
         if (!device.isPresent()) {
-            throw new IllegalArgumentException("device not found!");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "device not found!");
         }
         DeviceDomain domain = device.get();
         if (!authService.canVisit(domain)) {
-            throw new IllegalArgumentException("can not visit the device");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "can not visit the device");
         }
         deviceRepository.deleteById(deviceId);
 
@@ -135,11 +137,11 @@ public class DeviceController {
     public DeviceBean sendControl(@RequestBody SendRequest request) {
         Optional<DeviceDomain> device = deviceRepository.findById(request.getDeviceId());
         if (!device.isPresent()) {
-            throw new IllegalArgumentException("device not found!");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "device not found!");
         }
         DeviceDomain domain = device.get();
         if (!authService.canVisit(domain)) {
-            throw new IllegalArgumentException("can not visit the device");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "can not visit the device");
         }
 
         deviceService.sendControl(String.valueOf(request.getDeviceId()), request.getCtrl());
@@ -161,11 +163,11 @@ public class DeviceController {
         }
         Optional<DeviceDomain> device = deviceRepository.findById(request.getDeviceId());
         if (!device.isPresent()) {
-            throw new IllegalArgumentException("device not found!");
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "device not found!");
         }
         DeviceDomain domain = device.get();
         if (!authService.canVisit(domain)) {
-            throw new IllegalArgumentException("can not visit the device");
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "can not visit the device");
         }
 
         deviceService.sendMessage(String.valueOf(request.getDeviceId()), request.getData());
