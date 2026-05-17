@@ -2,9 +2,13 @@ package top.fengpingtech.solen.app.controller;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.persistence.criteria.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,18 +31,26 @@ import top.fengpingtech.solen.app.controller.bean.DeviceBean;
 import top.fengpingtech.solen.app.controller.bean.DeviceQueryRequest;
 import top.fengpingtech.solen.app.controller.bean.PageableResponse;
 import top.fengpingtech.solen.app.domain.DeviceDomain;
+import top.fengpingtech.solen.app.domain.EventDomain;
 import top.fengpingtech.solen.app.mapper.DeviceMapper;
 import top.fengpingtech.solen.app.repository.DeviceRepository;
+import top.fengpingtech.solen.app.repository.EventRepository;
 import top.fengpingtech.solen.server.DeviceService;
+import top.fengpingtech.solen.server.model.EventType;
 
 @RestController
 @RequestMapping("/api")
 public class DeviceController {
     private static final Logger logger = LoggerFactory.getLogger(DeviceController.class);
 
+    private static final Set<EventType> REPORT_EVENT_TYPES =
+            EnumSet.of(EventType.MESSAGE_RECEIVING, EventType.MESSAGE_SENDING, EventType.CONTROL_SENDING);
+
     private final DeviceService deviceService;
 
     private final DeviceRepository deviceRepository;
+
+    private final EventRepository eventRepository;
 
     private final AuthService authService;
 
@@ -47,10 +59,12 @@ public class DeviceController {
     public DeviceController(
             DeviceService deviceService,
             DeviceRepository deviceRepository,
+            EventRepository eventRepository,
             AuthService authService,
             DeviceMapper deviceMapper) {
         this.deviceService = deviceService;
         this.deviceRepository = deviceRepository;
+        this.eventRepository = eventRepository;
         this.authService = authService;
         this.deviceMapper = deviceMapper;
     }
@@ -96,14 +110,14 @@ public class DeviceController {
     public DeviceBean detail(@PathVariable("deviceId") String deviceId) {
         Optional<DeviceDomain> device = deviceRepository.findById(deviceId);
 
-        if (!device.isPresent()) {
+        if (device.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "device not found!");
         }
         DeviceDomain domain = device.get();
         if (!authService.canVisit(domain)) {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "can not visit the device");
         }
-        return deviceMapper.mapToBean(domain);
+        return buildDeviceBean(domain);
     }
 
     @DeleteMapping("/device/{deviceId}")
@@ -111,7 +125,7 @@ public class DeviceController {
             @PathVariable("deviceId") String deviceId,
             @RequestParam(required = false, defaultValue = "false") boolean force) {
         Optional<DeviceDomain> device = deviceRepository.findById(deviceId);
-        if (!device.isPresent()) {
+        if (device.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "device not found!");
         }
         DeviceDomain domain = device.get();
@@ -120,7 +134,7 @@ public class DeviceController {
         }
         deviceRepository.deleteById(deviceId);
 
-        return deviceMapper.mapToBean(domain);
+        return buildDeviceBean(domain);
     }
 
     @RequestMapping("/statByField")
@@ -131,7 +145,7 @@ public class DeviceController {
     @PostMapping("/sendControl")
     public DeviceBean sendControl(@RequestBody SendRequest request) {
         Optional<DeviceDomain> device = deviceRepository.findById(request.getDeviceId());
-        if (!device.isPresent()) {
+        if (device.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "device not found!");
         }
         DeviceDomain domain = device.get();
@@ -141,7 +155,7 @@ public class DeviceController {
 
         deviceService.sendControl(String.valueOf(request.getDeviceId()), request.getCtrl());
 
-        return deviceMapper.mapToBean(domain);
+        return buildDeviceBean(domain);
     }
 
     @PostMapping("/sendAscii")
@@ -154,7 +168,7 @@ public class DeviceController {
             throw new IllegalArgumentException("deviceId can not be null");
         }
         Optional<DeviceDomain> device = deviceRepository.findById(request.getDeviceId());
-        if (!device.isPresent()) {
+        if (device.isEmpty()) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "device not found!");
         }
         DeviceDomain domain = device.get();
@@ -163,22 +177,38 @@ public class DeviceController {
         }
 
         deviceService.sendMessage(String.valueOf(request.getDeviceId()), request.getData());
-        return deviceMapper.mapToBean(domain);
+        return buildDeviceBean(domain);
     }
 
-    //    private DeviceBean buildBean(DeviceDomain device) {
-    //        DeviceBean bean = DeviceBean.builder()
-    //
-    //                .build();
-    //
-    //        if (device.getLng() != null && device.getLat() != null) {
-    //            Coordinate coordinate = new Coordinate(CoordinateSystem.WGS84, device.getLng(), device.getLat());
-    //            bean.setCoordinates(Arrays.asList(
-    ////                    coordinate ,
-    ////                    coordinateTransformationService.wgs84ToBd09(coordinate),
-    ////                    coordinateTransformationService.wgs84ToGcj02(coordinate)
-    //            ));
-    //        }
-    //        return bean;
-    //    }
+    private DeviceBean buildDeviceBean(DeviceDomain domain) {
+        DeviceBean bean = deviceMapper.mapToBean(domain);
+        bean.setReports(loadReports(domain.getDeviceId()));
+        return bean;
+    }
+
+    private List<DeviceBean.Report> loadReports(String deviceId) {
+        List<EventDomain> events = eventRepository.findTop20ByDeviceDeviceIdOrderByEventIdDesc(deviceId);
+        if (events == null || events.isEmpty()) {
+            return Collections.emptyList();
+        }
+        return events.stream().map(this::toReport).flatMap(Optional::stream).collect(Collectors.toList());
+    }
+
+    private Optional<DeviceBean.Report> toReport(EventDomain event) {
+        if (event == null || event.getType() == null || !REPORT_EVENT_TYPES.contains(event.getType())) {
+            return Optional.empty();
+        }
+        Map<String, String> details = event.getDetails();
+        if (details == null || details.isEmpty()) {
+            return Optional.empty();
+        }
+        String content = Optional.ofNullable(details.get("content")).orElse(details.get("ctrl"));
+        if (content == null || content.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.of(DeviceBean.Report.builder()
+                .time(event.getTime())
+                .content(content)
+                .build());
+    }
 }
