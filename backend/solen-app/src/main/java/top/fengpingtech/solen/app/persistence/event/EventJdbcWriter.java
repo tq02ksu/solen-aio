@@ -23,6 +23,7 @@ import top.fengpingtech.solen.app.domain.EventDomain;
 @Component
 public class EventJdbcWriter {
     private static final Logger logger = LoggerFactory.getLogger(EventJdbcWriter.class);
+    private static final long ACTIVE_WRITE_SLEEP_MS = 10L;
 
     private static final String INSERT_SQL =
             "insert into event (event_id, device_id, type, time, details) values (?, ?, ?, ?, ?)";
@@ -135,6 +136,9 @@ public class EventJdbcWriter {
                 if (!batch.isEmpty()) {
                     flushBatchWithRetry(batch);
                     batch.clear();
+                    if (running.get()) {
+                        TimeUnit.MILLISECONDS.sleep(ACTIVE_WRITE_SLEEP_MS);
+                    }
                 }
             } catch (InterruptedException e) {
                 if (!running.get()) {
@@ -150,6 +154,7 @@ public class EventJdbcWriter {
         while (true) {
             try {
                 insert(events);
+                logger.info("event batch saved, size={}, queueSize={}", events.size(), writeQueue.size());
                 return;
             } catch (Throwable e) {
                 logger.error("event batch flush failed, size={}, retrying", events.size(), e);
