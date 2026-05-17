@@ -40,16 +40,16 @@ public class EventProcessorImpl implements EventProcessor {
     @Override
     public void processEvents(List<Event> events) {
         try {
-            transactionTemplate.execute(status -> {
-                processEventsInternal(events);
-                return null;
-            });
+            List<EventDomain> list = transactionTemplate.execute(status -> processEventsInternal(events));
+            if (list != null && !list.isEmpty()) {
+                eventJdbcWriter.enqueue(list);
+            }
         } catch (Throwable e) {
             logger.error("error while process events: {}", events, e);
         }
     }
 
-    private void processEventsInternal(List<Event> events) {
+    private List<EventDomain> processEventsInternal(List<Event> events) {
         List<EventDomain> list = new ArrayList<>();
 
         for (Event event : events) {
@@ -81,7 +81,7 @@ public class EventProcessorImpl implements EventProcessor {
             }
         }
 
-        eventJdbcWriter.enqueue(list);
+        return list;
     }
 
     private EventDomain processLocationChange(LocationEvent event) {

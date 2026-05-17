@@ -17,9 +17,10 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.argThat;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -51,21 +52,25 @@ class EventProcessorImplTest {
         when(deviceRepository.findById("40623100019")).thenReturn(Optional.of(device));
         when(deviceRepository.save(any(DeviceDomain.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        invokeProcessEventsInternal(processor, Collections.singletonList(event));
+        List<top.fengpingtech.solen.app.domain.EventDomain> writtenEvents =
+                invokeProcessEventsInternal(processor, Collections.singletonList(event));
 
         assertEquals(Double.valueOf(24.293282d), device.getLat());
         assertEquals(Double.valueOf(116.113869d), device.getLng());
+        assertNotNull(writtenEvents);
+        assertEquals(1, writtenEvents.size());
+        assertEquals(Long.valueOf(1116L), writtenEvents.get(0).getEventId());
+        assertEquals(EventType.LOCATION_CHANGE, writtenEvents.get(0).getType());
+        assertEquals(device, writtenEvents.get(0).getDevice());
         verify(deviceRepository).save(device);
-        verify(eventJdbcWriter).enqueue(argThat(list -> list.size() == 1
-                && list.get(0).getEventId().equals(1116L)
-                && list.get(0).getType() == EventType.LOCATION_CHANGE
-                && list.get(0).getDevice() == device));
+        verify(eventJdbcWriter, never()).enqueue(any());
     }
 
-    private void invokeProcessEventsInternal(EventProcessorImpl processor, List<Event> events) throws Exception {
+    @SuppressWarnings("unchecked")
+    private List<top.fengpingtech.solen.app.domain.EventDomain> invokeProcessEventsInternal(EventProcessorImpl processor, List<Event> events) throws Exception {
         Method method = EventProcessorImpl.class.getDeclaredMethod("processEventsInternal", List.class);
         method.setAccessible(true);
-        method.invoke(processor, events);
+        return (List<top.fengpingtech.solen.app.domain.EventDomain>) method.invoke(processor, events);
     }
 }
 
