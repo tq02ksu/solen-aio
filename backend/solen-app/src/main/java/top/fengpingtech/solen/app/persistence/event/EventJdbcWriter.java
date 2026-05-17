@@ -19,6 +19,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.support.TransactionTemplate;
 import top.fengpingtech.solen.app.domain.EventDomain;
+import top.fengpingtech.solen.app.persistence.sqlite.SqliteWriteCoordinator;
 
 @Component
 public class EventJdbcWriter {
@@ -40,6 +41,8 @@ public class EventJdbcWriter {
 
     private final long flushIntervalMs;
 
+    private final SqliteWriteCoordinator sqliteWriteCoordinator;
+
     private final AtomicBoolean running = new AtomicBoolean(true);
 
     private Thread workerThread;
@@ -47,12 +50,14 @@ public class EventJdbcWriter {
     public EventJdbcWriter(
             JdbcTemplate jdbcTemplate,
             PlatformTransactionManager transactionManager,
+            SqliteWriteCoordinator sqliteWriteCoordinator,
             @Value("${solen.event.writer.queue-capacity:20000}") int queueCapacity,
             @Value("${solen.event.writer.batch-size:200}") int batchSize,
             @Value("${solen.event.writer.flush-interval-ms:200}") long flushIntervalMs) {
         this.jdbcTemplate = jdbcTemplate;
         this.mapper = new EventJdbcMapper();
         this.transactionTemplate = new TransactionTemplate(transactionManager);
+        this.sqliteWriteCoordinator = sqliteWriteCoordinator;
         this.writeQueue = new ArrayBlockingQueue<>(Math.max(1, queueCapacity));
         this.batchSize = Math.max(1, batchSize);
         this.flushIntervalMs = Math.max(1L, flushIntervalMs);
@@ -105,7 +110,7 @@ public class EventJdbcWriter {
             return;
         }
 
-        transactionTemplate.execute(status -> {
+        sqliteWriteCoordinator.withWriteLock(() -> transactionTemplate.execute(status -> {
             jdbcTemplate.batchUpdate(INSERT_SQL, events, events.size(), (PreparedStatement ps, EventDomain event) -> {
                 EventJdbcRow row = mapper.toRow(event);
                 Date eventTime = row.getTime() != null ? row.getTime() : new Date();
@@ -116,7 +121,7 @@ public class EventJdbcWriter {
                 ps.setString(5, row.getDetails());
             });
             return null;
-        });
+        }));
     }
 
     private void runLoop() {

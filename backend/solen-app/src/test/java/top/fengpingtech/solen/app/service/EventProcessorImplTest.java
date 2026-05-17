@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import top.fengpingtech.solen.app.domain.ConnectionStatus;
 import top.fengpingtech.solen.app.domain.DeviceDomain;
 import top.fengpingtech.solen.app.persistence.event.EventJdbcWriter;
+import top.fengpingtech.solen.app.persistence.sqlite.SqliteWriteCoordinator;
 import top.fengpingtech.solen.app.repository.ConnectionRepository;
 import top.fengpingtech.solen.app.repository.DeviceRepository;
 import top.fengpingtech.solen.server.model.Event;
@@ -29,8 +30,8 @@ class EventProcessorImplTest {
         DeviceRepository deviceRepository = mock(DeviceRepository.class);
         ConnectionRepository connectionRepository = mock(ConnectionRepository.class);
         EventJdbcWriter eventJdbcWriter = mock(EventJdbcWriter.class);
-        EventProcessorImpl processor =
-                new EventProcessorImpl(deviceRepository, connectionRepository, eventJdbcWriter, null);
+        EventProcessorImpl processor = new EventProcessorImpl(
+                deviceRepository, connectionRepository, eventJdbcWriter, null, new SqliteWriteCoordinator());
         DeviceDomain device = DeviceDomain.builder()
                 .deviceId("40623100019")
                 .status(ConnectionStatus.NORMAL)

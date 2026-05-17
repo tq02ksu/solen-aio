@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 import top.fengpingtech.solen.app.domain.*;
 import top.fengpingtech.solen.app.persistence.event.EventJdbcWriter;
+import top.fengpingtech.solen.app.persistence.sqlite.SqliteWriteCoordinator;
 import top.fengpingtech.solen.app.repository.ConnectionRepository;
 import top.fengpingtech.solen.app.repository.DeviceRepository;
 import top.fengpingtech.solen.server.EventProcessor;
@@ -17,6 +18,8 @@ import top.fengpingtech.solen.server.model.*;
 @Service
 public class EventProcessorImpl implements EventProcessor {
     private static final Logger logger = LoggerFactory.getLogger(EventProcessorImpl.class);
+    private static final int SQLITE_BUSY_MAX_ATTEMPTS = 5;
+    private static final long SQLITE_BUSY_RETRY_SLEEP_MS = 25L;
 
     private final DeviceRepository deviceRepository;
 
@@ -26,27 +29,72 @@ public class EventProcessorImpl implements EventProcessor {
 
     private final TransactionTemplate transactionTemplate;
 
+    private final SqliteWriteCoordinator sqliteWriteCoordinator;
+
     public EventProcessorImpl(
             DeviceRepository deviceRepository,
             ConnectionRepository connectionRepository,
             EventJdbcWriter eventJdbcWriter,
-            TransactionTemplate transactionTemplate) {
+            TransactionTemplate transactionTemplate,
+            SqliteWriteCoordinator sqliteWriteCoordinator) {
         this.deviceRepository = deviceRepository;
         this.connectionRepository = connectionRepository;
         this.eventJdbcWriter = eventJdbcWriter;
         this.transactionTemplate = transactionTemplate;
+        this.sqliteWriteCoordinator = sqliteWriteCoordinator;
     }
 
     @Override
     public void processEvents(List<Event> events) {
         try {
-            List<EventDomain> list = transactionTemplate.execute(status -> processEventsInternal(events));
+            List<EventDomain> list = executeWithSqliteRetry(events);
             if (list != null && !list.isEmpty()) {
                 eventJdbcWriter.enqueue(list);
             }
         } catch (Throwable e) {
             logger.error("error while process events: {}", events, e);
         }
+    }
+
+    private List<EventDomain> executeWithSqliteRetry(List<Event> events) {
+        for (int attempt = 1; ; attempt++) {
+            try {
+                return sqliteWriteCoordinator.withWriteLock(
+                        () -> transactionTemplate.execute(status -> processEventsInternal(events)));
+            } catch (Throwable e) {
+                if (!isSqliteBusy(e) || attempt >= SQLITE_BUSY_MAX_ATTEMPTS) {
+                    throw e;
+                }
+
+                logger.warn(
+                        "sqlite busy while processing events, attempt={}/{}, retrying",
+                        attempt,
+                        SQLITE_BUSY_MAX_ATTEMPTS,
+                        e);
+                sleepBeforeRetry();
+            }
+        }
+    }
+
+    private void sleepBeforeRetry() {
+        try {
+            Thread.sleep(SQLITE_BUSY_RETRY_SLEEP_MS);
+        } catch (InterruptedException interruptedException) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("interrupted while retrying sqlite event processing", interruptedException);
+        }
+    }
+
+    private boolean isSqliteBusy(Throwable throwable) {
+        Throwable current = throwable;
+        while (current != null) {
+            String message = current.getMessage();
+            if (message != null && (message.contains("SQLITE_BUSY") || message.contains("database is locked"))) {
+                return true;
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 
     private List<EventDomain> processEventsInternal(List<Event> events) {
