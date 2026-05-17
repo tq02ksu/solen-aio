@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -101,6 +102,40 @@ class EventJdbcWriterIntegrationTest {
     }
 
     @Test
+    void enqueuesEventsAndFlushesAsynchronously() {
+        DeviceDomain device = transactionTemplate.execute(status -> deviceRepository.save(DeviceDomain.builder()
+                .deviceId("device-jdbc-async")
+                .status(ConnectionStatus.NORMAL)
+                .lac(1L)
+                .ci(1L)
+                .inputStat(0)
+                .outputStat(0)
+                .rssi(-50)
+                .voltage(3.7d)
+                .temperature(25.0d)
+                .gravity(0)
+                .uptime(1)
+                .lat(0.0d)
+                .lng(0.0d)
+                .build()));
+
+        eventJdbcWriter.enqueue(Collections.singletonList(EventDomain.builder()
+                .eventId(1003L)
+                .device(device)
+                .type(EventType.CONTROL_SENDING)
+                .time(new Date(1_700_000_100_000L))
+                .details(Collections.singletonMap("ctrl", "on"))
+                .build()));
+
+        EventDomain saved = awaitEvent(1003L, 5000L)
+                .orElseThrow(() -> new AssertionError("missing asynchronously flushed event"));
+
+        assertEquals(EventType.CONTROL_SENDING, saved.getType());
+        assertEquals("device-jdbc-async", saved.getDevice().getDeviceId());
+        assertEquals("on", saved.getDetails().get("ctrl"));
+    }
+
+    @Test
     void writesEventsWithFallbackTimeWhenTimestampIsNull() {
         DeviceDomain device = transactionTemplate.execute(status -> deviceRepository.save(DeviceDomain.builder()
                 .deviceId("device-jdbc-null-time")
@@ -132,5 +167,22 @@ class EventJdbcWriterIntegrationTest {
         assertNotNull(saved.getTime());
         assertEquals(EventType.DISCONNECT, saved.getType());
         assertEquals("device-jdbc-null-time", saved.getDevice().getDeviceId());
+    }
+
+    private Optional<EventDomain> awaitEvent(long eventId, long timeoutMs) {
+        long deadline = System.currentTimeMillis() + timeoutMs;
+        while (System.currentTimeMillis() < deadline) {
+            Optional<EventDomain> saved = eventRepository.findById(eventId);
+            if (saved.isPresent()) {
+                return saved;
+            }
+            try {
+                Thread.sleep(50L);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new IllegalStateException("interrupted while awaiting async event", e);
+            }
+        }
+        return Optional.empty();
     }
 }

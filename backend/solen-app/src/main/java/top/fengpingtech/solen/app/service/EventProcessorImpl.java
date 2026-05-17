@@ -8,7 +8,6 @@ import top.fengpingtech.solen.app.persistence.event.EventJdbcWriter;
 import top.fengpingtech.solen.app.domain.*;
 import top.fengpingtech.solen.app.repository.ConnectionRepository;
 import top.fengpingtech.solen.app.repository.DeviceRepository;
-import top.fengpingtech.solen.app.repository.EventRepository;
 import top.fengpingtech.solen.server.EventProcessor;
 import top.fengpingtech.solen.server.model.*;
 
@@ -24,20 +23,16 @@ public class EventProcessorImpl implements EventProcessor {
 
     private final ConnectionRepository connectionRepository;
 
-    private final EventRepository eventRepository;
-
     private final EventJdbcWriter eventJdbcWriter;
 
     private final TransactionTemplate transactionTemplate;
 
     public EventProcessorImpl(DeviceRepository deviceRepository,
                               ConnectionRepository connectionRepository,
-                              EventRepository eventRepository,
                               EventJdbcWriter eventJdbcWriter,
                               TransactionTemplate transactionTemplate) {
         this.deviceRepository = deviceRepository;
         this.connectionRepository = connectionRepository;
-        this.eventRepository = eventRepository;
         this.eventJdbcWriter = eventJdbcWriter;
         this.transactionTemplate = transactionTemplate;
     }
@@ -86,7 +81,7 @@ public class EventProcessorImpl implements EventProcessor {
             }
         }
 
-        eventJdbcWriter.insert(list);
+        eventJdbcWriter.enqueue(list);
     }
 
     private EventDomain processLocationChange(LocationEvent event) {

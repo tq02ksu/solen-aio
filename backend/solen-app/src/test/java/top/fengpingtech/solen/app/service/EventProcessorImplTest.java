@@ -6,7 +6,6 @@ import top.fengpingtech.solen.app.domain.DeviceDomain;
 import top.fengpingtech.solen.app.persistence.event.EventJdbcWriter;
 import top.fengpingtech.solen.app.repository.ConnectionRepository;
 import top.fengpingtech.solen.app.repository.DeviceRepository;
-import top.fengpingtech.solen.app.repository.EventRepository;
 import top.fengpingtech.solen.server.model.Event;
 import top.fengpingtech.solen.server.model.EventType;
 import top.fengpingtech.solen.server.model.LocationEvent;
@@ -29,12 +28,10 @@ class EventProcessorImplTest {
     void processLocationChangeUpdatesDeviceWhenStoredCoordinatesAreNull() throws Exception {
         DeviceRepository deviceRepository = mock(DeviceRepository.class);
         ConnectionRepository connectionRepository = mock(ConnectionRepository.class);
-        EventRepository eventRepository = mock(EventRepository.class);
         EventJdbcWriter eventJdbcWriter = mock(EventJdbcWriter.class);
         EventProcessorImpl processor = new EventProcessorImpl(
                 deviceRepository,
                 connectionRepository,
-                eventRepository,
                 eventJdbcWriter,
                 null
         );
@@ -59,7 +56,7 @@ class EventProcessorImplTest {
         assertEquals(Double.valueOf(24.293282d), device.getLat());
         assertEquals(Double.valueOf(116.113869d), device.getLng());
         verify(deviceRepository).save(device);
-        verify(eventJdbcWriter).insert(argThat(list -> list.size() == 1
+        verify(eventJdbcWriter).enqueue(argThat(list -> list.size() == 1
                 && list.get(0).getEventId().equals(1116L)
                 && list.get(0).getType() == EventType.LOCATION_CHANGE
                 && list.get(0).getDevice() == device));

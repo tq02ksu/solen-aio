@@ -22,6 +22,11 @@ spring:
 solen:
   server:
     port: 7889
+  event:
+    writer:
+      queue-capacity: 20000
+      batch-size: 200
+      flush-interval-ms: 200
   auth:
     tenants:
       - app-key: test
@@ -40,15 +45,7 @@ solen:
       issuer: http://iot-online.fengping-tech.top
 
 logging:
-  path: log
+  file:
+    path: log
   level:
     top.fengpingtech.solen: debug
-    io.netty: debug
-    org:
-      hibernate:
-        SQL: debug
-        type:
-          descriptor:
-            sql:
-              BasicBinder: trace
-debug: true
