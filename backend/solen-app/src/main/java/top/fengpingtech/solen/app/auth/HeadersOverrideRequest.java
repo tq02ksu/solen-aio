@@ -1,7 +1,5 @@
 package top.fengpingtech.solen.app.auth;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.HashMap;
@@ -9,13 +7,16 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequestWrapper;
 
 public class HeadersOverrideRequest extends HttpServletRequestWrapper {
     private final Map<String, String> headers;
+
     public HeadersOverrideRequest(HttpServletRequest request, String... headers) {
         super(request);
         this.headers = new HashMap<>();
-        for (int i = 0; i < headers.length / 2; i ++) {
+        for (int i = 0; i < headers.length / 2; i++) {
             if (headers[2 * i + 1] != null) {
                 this.headers.put(headers[2 * i], headers[2 * i + 1]);
             }
@@ -39,7 +40,10 @@ public class HeadersOverrideRequest extends HttpServletRequestWrapper {
 
     @Override
     public Enumeration<String> getHeaderNames() {
-        Iterator<String> list = Stream.concat(Collections.list(super.getHeaderNames()).stream(), headers.keySet().stream()).collect(Collectors.toList()).iterator();
+        Iterator<String> list = Stream.concat(
+                        Collections.list(super.getHeaderNames()).stream(), headers.keySet().stream())
+                .collect(Collectors.toList())
+                .iterator();
         return new IteratorEnumeration<>(list);
     }
 
@@ -58,5 +62,4 @@ public class HeadersOverrideRequest extends HttpServletRequestWrapper {
             return this.iterator.next();
         }
     }
-
 }

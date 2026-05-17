@@ -1,38 +1,24 @@
 package top.fengpingtech.solen.server.model;
 
 public enum EventType {
-    /**
-     * device connect
-     */
+    /** device connect */
     CONNECT,
 
-    /**
-     * device disconnect
-     */
+    /** device disconnect */
     DISCONNECT,
 
-    /**
-     * 串口接收
-     */
+    /** 串口接收 */
     MESSAGE_RECEIVING,
 
-    /**
-     * 串口发送
-     */
+    /** 串口发送 */
     MESSAGE_SENDING,
 
-    /**
-     * 属性更新
-     */
+    /** 属性更新 */
     ATTRIBUTE_UPDATE,
 
-    /**
-     * 定位信息
-     */
+    /** 定位信息 */
     LOCATION_CHANGE,
 
-    /**
-     * 发送开关机
-     */
+    /** 发送开关机 */
     CONTROL_SENDING;
 }

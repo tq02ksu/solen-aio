@@ -4,11 +4,10 @@ import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.netty.handler.codec.MessageToByteEncoder;
+import java.nio.charset.StandardCharsets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import top.fengpingtech.solen.server.model.SoltMachineMessage;
-
-import java.nio.charset.StandardCharsets;
 
 public class MessageEncoder extends MessageToByteEncoder<SoltMachineMessage> {
     private static final Logger logger = LoggerFactory.getLogger(MessageEncoder.class);
@@ -24,7 +23,7 @@ public class MessageEncoder extends MessageToByteEncoder<SoltMachineMessage> {
 
     @Override
     protected void encode(ChannelHandlerContext ctx, SoltMachineMessage msg, ByteBuf out) {
-       encode(msg, out);
+        encode(msg, out);
     }
 
     public void encode(SoltMachineMessage msg, ByteBuf out) {

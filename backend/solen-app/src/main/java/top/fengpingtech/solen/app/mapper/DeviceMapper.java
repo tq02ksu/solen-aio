@@ -1,5 +1,7 @@
 package top.fengpingtech.solen.app.mapper;
 
+import java.util.Arrays;
+import java.util.List;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.ReportingPolicy;
@@ -8,9 +10,6 @@ import top.fengpingtech.solen.app.domain.Coordinate;
 import top.fengpingtech.solen.app.domain.CoordinateSystem;
 import top.fengpingtech.solen.app.domain.DeviceDomain;
 import top.fengpingtech.solen.app.service.CoordinateTransformationService;
-
-import java.util.Arrays;
-import java.util.List;
 
 @Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface DeviceMapper {
@@ -25,9 +24,6 @@ public interface DeviceMapper {
         }
         Coordinate coordinate = new Coordinate(CoordinateSystem.WGS84, domain.getLng(), domain.getLat());
         CoordinateTransformationService transformer = new CoordinateTransformationService();
-        return Arrays.asList(
-                coordinate,
-                transformer.wgs84ToBd09(coordinate),
-                transformer.wgs84ToGcj02(coordinate));
+        return Arrays.asList(coordinate, transformer.wgs84ToBd09(coordinate), transformer.wgs84ToGcj02(coordinate));
     }
 }

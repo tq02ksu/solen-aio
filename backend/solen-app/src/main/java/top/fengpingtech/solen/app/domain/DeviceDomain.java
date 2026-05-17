@@ -1,5 +1,7 @@
 package top.fengpingtech.solen.app.domain;
 
+import java.util.List;
+import javax.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -7,9 +9,6 @@ import lombok.NoArgsConstructor;
 import top.fengpingtech.solen.app.domain.support.MinusOneIntegerNotNullConverter;
 import top.fengpingtech.solen.app.domain.support.MinusOneLongNotNullConverter;
 import top.fengpingtech.solen.app.domain.support.ZeroDoubleNotNullConverter;
-
-import javax.persistence.*;
-import java.util.List;
 
 @Entity
 @Data

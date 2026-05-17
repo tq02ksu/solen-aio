@@ -1,15 +1,14 @@
 package top.fengpingtech.solen.app.auth;
 
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.Collections;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import top.fengpingtech.solen.app.config.AuthProperties;
 import top.fengpingtech.solen.app.domain.DeviceDomain;
-
-import java.util.Collections;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class AuthServiceTest {
 
@@ -23,9 +22,8 @@ class AuthServiceTest {
 
     @Test
     void shouldResolveTenantFromSpringSecurityContext() {
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("test", null, Collections.emptyList())
-        );
+        SecurityContextHolder.getContext()
+                .setAuthentication(new UsernamePasswordAuthenticationToken("test", null, Collections.emptyList()));
 
         Tenant tenant = authService.getTenant();
 
@@ -43,9 +41,8 @@ class AuthServiceTest {
 
     @Test
     void shouldAllowVisitWhenTenantPatternMatches() {
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("test", null, Collections.emptyList())
-        );
+        SecurityContextHolder.getContext()
+                .setAuthentication(new UsernamePasswordAuthenticationToken("test", null, Collections.emptyList()));
         DeviceDomain device = DeviceDomain.builder().deviceId("40623120049").build();
 
         assertTrue(authService.canVisit(device));
@@ -53,9 +50,9 @@ class AuthServiceTest {
 
     @Test
     void shouldReturnNullForUnknownAuthenticatedTenant() {
-        SecurityContextHolder.getContext().setAuthentication(
-                new UsernamePasswordAuthenticationToken("missing-tenant", null, Collections.emptyList())
-        );
+        SecurityContextHolder.getContext()
+                .setAuthentication(
+                        new UsernamePasswordAuthenticationToken("missing-tenant", null, Collections.emptyList()));
 
         assertNull(authService.getTenant());
     }
@@ -73,4 +70,3 @@ class AuthServiceTest {
         return authProperties;
     }
 }
-

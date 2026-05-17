@@ -1,19 +1,18 @@
 package top.fengpingtech.solen.server.netty;
 
+import static org.junit.Assert.assertTrue;
+
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
 import io.netty.util.concurrent.GenericFutureListener;
-import org.junit.Test;
-import top.fengpingtech.solen.server.config.ServerProperties;
-
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
-
-import static org.junit.Assert.assertTrue;
+import org.junit.Test;
+import top.fengpingtech.solen.server.config.ServerProperties;
 
 public class SolenNettyServerTest {
     @Test
@@ -34,9 +33,7 @@ public class SolenNettyServerTest {
 
     private static Channel channel(AtomicBoolean closeCalled, ChannelFuture closeFuture) {
         return (Channel) Proxy.newProxyInstance(
-                Channel.class.getClassLoader(),
-                new Class<?>[] {Channel.class},
-                new InvocationHandler() {
+                Channel.class.getClassLoader(), new Class<?>[] {Channel.class}, new InvocationHandler() {
                     @Override
                     public Object invoke(Object proxy, Method method, Object[] args) {
                         if ("close".equals(method.getName())) {
@@ -54,15 +51,12 @@ public class SolenNettyServerTest {
                         }
                         return null;
                     }
-                }
-        );
+                });
     }
 
     private static ChannelFuture channelFuture(AtomicBoolean closeCalled, Channel channel) {
         return (ChannelFuture) Proxy.newProxyInstance(
-                ChannelFuture.class.getClassLoader(),
-                new Class<?>[] {ChannelFuture.class},
-                new InvocationHandler() {
+                ChannelFuture.class.getClassLoader(), new Class<?>[] {ChannelFuture.class}, new InvocationHandler() {
                     @Override
                     @SuppressWarnings("unchecked")
                     public Object invoke(Object proxy, Method method, Object[] args) throws Exception {
@@ -70,7 +64,8 @@ public class SolenNettyServerTest {
                             return channel;
                         }
                         if ("addListener".equals(method.getName())) {
-                            GenericFutureListener<ChannelFuture> listener = (GenericFutureListener<ChannelFuture>) args[0];
+                            GenericFutureListener<ChannelFuture> listener =
+                                    (GenericFutureListener<ChannelFuture>) args[0];
                             listener.operationComplete((ChannelFuture) proxy);
                             return proxy;
                         }
@@ -115,8 +110,7 @@ public class SolenNettyServerTest {
                         }
                         return null;
                     }
-                }
-        );
+                });
     }
 
     private static void setField(Object target, String fieldName, Object value) throws Exception {

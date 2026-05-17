@@ -1,9 +1,8 @@
 package top.fengpingtech.solen.app.config;
 
+import java.time.Duration;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-
-import java.time.Duration;
 
 @ConfigurationProperties(prefix = SolenServerProperties.PREFIX)
 @Data

@@ -1,11 +1,10 @@
 package top.fengpingtech.solen.app.controller.bean;
 
+import java.util.Date;
+import java.util.List;
 import lombok.Data;
 import top.fengpingtech.solen.app.domain.ConnectionStatus;
 import top.fengpingtech.solen.app.domain.Coordinate;
-
-import java.util.Date;
-import java.util.List;
 
 @Data
 public class ConnectionBean {

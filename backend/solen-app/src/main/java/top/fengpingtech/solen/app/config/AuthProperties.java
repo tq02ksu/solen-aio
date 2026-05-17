@@ -1,10 +1,9 @@
 package top.fengpingtech.solen.app.config;
 
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import top.fengpingtech.solen.app.auth.Tenant;
-
 import java.util.ArrayList;
 import java.util.List;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import top.fengpingtech.solen.app.auth.Tenant;
 
 @ConfigurationProperties(prefix = AuthProperties.PREFIX)
 public class AuthProperties {

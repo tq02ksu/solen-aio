@@ -1,9 +1,9 @@
 package top.fengpingtech.solen;
 
+import java.util.Scanner;
+import java.util.concurrent.atomic.AtomicLong;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.Option;
-import org.apache.commons.cli.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
@@ -15,9 +15,6 @@ import top.fengpingtech.solen.server.IdGenerator;
 import top.fengpingtech.solen.server.SolenServer;
 import top.fengpingtech.solen.server.config.ServerProperties;
 import top.fengpingtech.solen.server.netty.SolenNettyServer;
-
-import java.util.Scanner;
-import java.util.concurrent.atomic.AtomicLong;
 
 @SpringBootApplication
 public class SolenServerDemoApplication {
@@ -34,6 +31,7 @@ public class SolenServerDemoApplication {
         properties.setEventProcessor(events -> System.out.println("receiving events: " + events)); // 设置消息处理函数
         properties.setEventIdGenerator(new IdGenerator() {
             final AtomicLong counter = new AtomicLong(0);
+
             @Override
             public Long nextVal() {
                 return counter.getAndIncrement();

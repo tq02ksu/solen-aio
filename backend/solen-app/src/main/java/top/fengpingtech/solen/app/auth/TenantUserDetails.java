@@ -1,13 +1,12 @@
 package top.fengpingtech.solen.app.auth;
 
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 public class TenantUserDetails implements UserDetails {
     private final Tenant tenant;
@@ -18,8 +17,7 @@ public class TenantUserDetails implements UserDetails {
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return Optional.ofNullable(tenant.getRoles()).orElseGet(ArrayList::new)
-                .stream()
+        return Optional.ofNullable(tenant.getRoles()).orElseGet(ArrayList::new).stream()
                 .map(SimpleGrantedAuthority::new)
                 .collect(Collectors.toList());
     }

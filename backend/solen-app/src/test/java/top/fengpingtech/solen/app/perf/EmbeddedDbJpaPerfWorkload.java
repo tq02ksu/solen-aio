@@ -8,6 +8,5 @@ final class EmbeddedDbJpaPerfWorkload {
     static final int PAGE_SIZE = 100;
     static final String RETENTION_CUTOFF = "2026-05-16 12:30:00";
 
-    private EmbeddedDbJpaPerfWorkload() {
-    }
+    private EmbeddedDbJpaPerfWorkload() {}
 }

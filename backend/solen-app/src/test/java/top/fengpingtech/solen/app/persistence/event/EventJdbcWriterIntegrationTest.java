@@ -1,5 +1,15 @@
 package top.fengpingtech.solen.app.persistence.event;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Optional;
+import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,17 +25,6 @@ import top.fengpingtech.solen.app.repository.DeviceRepository;
 import top.fengpingtech.solen.app.repository.EventRepository;
 import top.fengpingtech.solen.server.model.EventType;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Optional;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-
 @SpringBootTest(classes = SolenApplication.class)
 class EventJdbcWriterIntegrationTest {
     private static final String DATASOURCE_URL = sqliteUrl("event-jdbc-writer-");
@@ -33,7 +32,10 @@ class EventJdbcWriterIntegrationTest {
     private static String sqliteUrl(String prefix) {
         try {
             Path dir = Files.createDirectories(Path.of(System.getProperty("java.io.tmpdir"), "opencode"));
-            return "jdbc:sqlite:" + dir.resolve(prefix + UUID.randomUUID() + ".sqlite").toString().replace('\\', '/');
+            return "jdbc:sqlite:"
+                    + dir.resolve(prefix + UUID.randomUUID() + ".sqlite")
+                            .toString()
+                            .replace('\\', '/');
         } catch (IOException e) {
             throw new IllegalStateException("failed to prepare sqlite test path", e);
         }
@@ -91,8 +93,8 @@ class EventJdbcWriterIntegrationTest {
                 .details(Collections.singletonMap("content", "payload"))
                 .build()));
 
-        EventDomain saved = eventRepository.findById(1001L)
-                .orElseThrow(() -> new AssertionError("missing JDBC-written event"));
+        EventDomain saved =
+                eventRepository.findById(1001L).orElseThrow(() -> new AssertionError("missing JDBC-written event"));
 
         assertEquals(1L, eventRepository.count());
         assertEquals(Long.valueOf(1001L), eventRepository.getMaxId());
@@ -127,8 +129,8 @@ class EventJdbcWriterIntegrationTest {
                 .details(Collections.singletonMap("ctrl", "on"))
                 .build()));
 
-        EventDomain saved = awaitEvent(1003L, 5000L)
-                .orElseThrow(() -> new AssertionError("missing asynchronously flushed event"));
+        EventDomain saved =
+                awaitEvent(1003L, 5000L).orElseThrow(() -> new AssertionError("missing asynchronously flushed event"));
 
         assertEquals(EventType.CONTROL_SENDING, saved.getType());
         assertEquals("device-jdbc-async", saved.getDevice().getDeviceId());
@@ -161,7 +163,8 @@ class EventJdbcWriterIntegrationTest {
                 .details(Collections.emptyMap())
                 .build()));
 
-        EventDomain saved = eventRepository.findById(1002L)
+        EventDomain saved = eventRepository
+                .findById(1002L)
                 .orElseThrow(() -> new AssertionError("missing JDBC-written event with fallback time"));
 
         assertNotNull(saved.getTime());

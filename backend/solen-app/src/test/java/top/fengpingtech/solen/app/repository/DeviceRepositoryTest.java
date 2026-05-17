@@ -1,12 +1,12 @@
 package top.fengpingtech.solen.app.repository;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import top.fengpingtech.solen.app.SolenApplicationTests;
 import top.fengpingtech.solen.app.domain.ConnectionStatus;
 import top.fengpingtech.solen.app.domain.DeviceDomain;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class DeviceRepositoryTest extends SolenApplicationTests {
 

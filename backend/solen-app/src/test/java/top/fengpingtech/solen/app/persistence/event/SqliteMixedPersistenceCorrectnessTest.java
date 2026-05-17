@@ -1,5 +1,12 @@
 package top.fengpingtech.solen.app.persistence.event;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -16,18 +23,10 @@ import top.fengpingtech.solen.app.repository.DeviceRepository;
 import top.fengpingtech.solen.app.repository.EventRepository;
 import top.fengpingtech.solen.server.model.EventType;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 @SpringBootTest(classes = SolenApplication.class)
 class SqliteMixedPersistenceCorrectnessTest {
-    private static final String DATASOURCE_URL = "jdbc:sqlite:/tmp/opencode/sqlite-mixed-persistence-"
-            + UUID.randomUUID() + ".sqlite";
+    private static final String DATASOURCE_URL =
+            "jdbc:sqlite:/tmp/opencode/sqlite-mixed-persistence-" + UUID.randomUUID() + ".sqlite";
 
     @DynamicPropertySource
     static void overrideDatasource(DynamicPropertyRegistry registry) {
@@ -79,13 +78,13 @@ class SqliteMixedPersistenceCorrectnessTest {
                         .type(EventType.MESSAGE_RECEIVING)
                         .time(new Date(1_700_000_001_000L))
                         .details(Collections.singletonMap("content", "b"))
-                        .build()
-        ));
+                        .build()));
 
-        List<EventDomain> page = eventRepository.findAll(
-                (root, query, cb) -> cb.equal(root.get("device").get("deviceId"), "device-mixed"),
-                PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "eventId"))
-        ).getContent();
+        List<EventDomain> page = eventRepository
+                .findAll(
+                        (root, query, cb) -> cb.equal(root.get("device").get("deviceId"), "device-mixed"),
+                        PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "eventId")))
+                .getContent();
 
         assertEquals(2, page.size());
         assertEquals(Long.valueOf(3002L), page.get(0).getEventId());

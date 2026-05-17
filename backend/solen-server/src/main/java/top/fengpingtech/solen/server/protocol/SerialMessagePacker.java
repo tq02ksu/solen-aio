@@ -5,21 +5,20 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.MessageToMessageDecoder;
 import io.netty.util.Attribute;
 import io.netty.util.AttributeKey;
-import top.fengpingtech.solen.server.model.SoltMachineMessage;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import top.fengpingtech.solen.server.model.SoltMachineMessage;
 
 public class SerialMessagePacker extends MessageToMessageDecoder<SoltMachineMessage> {
     private static final String ATTRIBUTE_KEY_MESSAGE_BUFFER = "MESSAGE_BUFFER";
 
     private static final int TEXT_REPORT_TIMEOUT_SECONDS = 5;
 
-    private static final List<Byte> TEXT_TERMINATORS = Collections.unmodifiableList(
-            Arrays.asList((byte) 0x00, (byte) 0x0a));
+    private static final List<Byte> TEXT_TERMINATORS =
+            Collections.unmodifiableList(Arrays.asList((byte) 0x00, (byte) 0x0a));
 
     @Override
     protected void decode(ChannelHandlerContext ctx, SoltMachineMessage msg, List<Object> out) throws Exception {
@@ -42,14 +41,17 @@ public class SerialMessagePacker extends MessageToMessageDecoder<SoltMachineMess
 
         // schedule process
         if (val.get() != null) {
-            ctx.executor().schedule(() -> {
-                for (byte[] message = val.get(); message != null; message = val.get()) {
-                    if (val.compareAndSet(message, null)) {
-                        ctx.fireChannelRead(generateMessage(msg, message));
-                    }
-                }
-
-            }, TEXT_REPORT_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            ctx.executor()
+                    .schedule(
+                            () -> {
+                                for (byte[] message = val.get(); message != null; message = val.get()) {
+                                    if (val.compareAndSet(message, null)) {
+                                        ctx.fireChannelRead(generateMessage(msg, message));
+                                    }
+                                }
+                            },
+                            TEXT_REPORT_TIMEOUT_SECONDS,
+                            TimeUnit.SECONDS);
         }
     }
 

@@ -1,19 +1,18 @@
 package top.fengpingtech.solen.app.service;
 
+import static top.fengpingtech.solen.app.domain.CoordinateSystem.WGS84;
+
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
-import top.fengpingtech.solen.app.persistence.event.EventJdbcWriter;
 import top.fengpingtech.solen.app.domain.*;
+import top.fengpingtech.solen.app.persistence.event.EventJdbcWriter;
 import top.fengpingtech.solen.app.repository.ConnectionRepository;
 import top.fengpingtech.solen.app.repository.DeviceRepository;
 import top.fengpingtech.solen.server.EventProcessor;
 import top.fengpingtech.solen.server.model.*;
-
-import java.util.*;
-
-import static top.fengpingtech.solen.app.domain.CoordinateSystem.WGS84;
 
 @Service
 public class EventProcessorImpl implements EventProcessor {
@@ -27,10 +26,11 @@ public class EventProcessorImpl implements EventProcessor {
 
     private final TransactionTemplate transactionTemplate;
 
-    public EventProcessorImpl(DeviceRepository deviceRepository,
-                              ConnectionRepository connectionRepository,
-                              EventJdbcWriter eventJdbcWriter,
-                              TransactionTemplate transactionTemplate) {
+    public EventProcessorImpl(
+            DeviceRepository deviceRepository,
+            ConnectionRepository connectionRepository,
+            EventJdbcWriter eventJdbcWriter,
+            TransactionTemplate transactionTemplate) {
         this.deviceRepository = deviceRepository;
         this.connectionRepository = connectionRepository;
         this.eventJdbcWriter = eventJdbcWriter;
@@ -90,8 +90,7 @@ public class EventProcessorImpl implements EventProcessor {
         if (optionalDeviceDomain.isPresent()) {
             Coordinate coordinate = new Coordinate(WGS84, event.getLng(), event.getLat());
             DeviceDomain device = optionalDeviceDomain.get();
-            if (!Objects.equals(device.getLat(), event.getLat())
-                    || !Objects.equals(device.getLng(), event.getLng())) {
+            if (!Objects.equals(device.getLat(), event.getLat()) || !Objects.equals(device.getLng(), event.getLng())) {
                 device.setLng(event.getLng());
                 device.setLat(event.getLat());
                 deviceRepository.save(device);
@@ -184,8 +183,7 @@ public class EventProcessorImpl implements EventProcessor {
     private EventDomain processMessageEvent(MessageEvent event) {
         Optional<DeviceDomain> device = deviceRepository.findById(event.getDeviceId());
         String key = event.getType() == EventType.CONTROL_SENDING ? "ctrl" : "content";
-        return device.map(deviceDomain ->
-                EventDomain.builder()
+        return device.map(deviceDomain -> EventDomain.builder()
                         .eventId(event.getEventId())
                         .time(event.getTime())
                         .type(event.getType())
@@ -204,29 +202,33 @@ public class EventProcessorImpl implements EventProcessor {
 
         List<ConnectionDomain> connections = connectionRepository.findByDevice(device.get());
         // delete current connection
-        connections.stream().filter(c -> c.getConnectionId().equals(event.getConnectionId()))
+        connections.stream()
+                .filter(c -> c.getConnectionId().equals(event.getConnectionId()))
                 .forEach(connectionRepository::delete);
-        boolean statusChanged = connections.stream().noneMatch(c -> c.getConnectionId().equals(event.getConnectionId()));
+        boolean statusChanged =
+                connections.stream().noneMatch(c -> c.getConnectionId().equals(event.getConnectionId()));
         DeviceDomain deviceDomain = device.get();
         if (statusChanged) {
             deviceDomain.setStatus(ConnectionStatus.DISCONNECTED);
             deviceRepository.save(deviceDomain);
         }
 
-        return statusChanged ?  EventDomain.builder()
-                .device(deviceDomain)
-                .type(event.getType())
-                .time(event.getTime())
-                .eventId(event.getEventId())
-                .build() : null;
+        return statusChanged
+                ? EventDomain.builder()
+                        .device(deviceDomain)
+                        .type(event.getType())
+                        .time(event.getTime())
+                        .eventId(event.getEventId())
+                        .build()
+                : null;
 
-//                    EventDomain.builder()
-//                            .device(deviceDomain)
-//                            .type(EventType.ATTRIBUTE_UPDATE)
-//                            .time(event.getTime())
-//                            .eventId(event.getEventId())
-//                            .details(Collections.singletonMap("status", ConnectionStatus.DISCONNECTED.name()))
-//                            .build()
+        //                    EventDomain.builder()
+        //                            .device(deviceDomain)
+        //                            .type(EventType.ATTRIBUTE_UPDATE)
+        //                            .time(event.getTime())
+        //                            .eventId(event.getEventId())
+        //                            .details(Collections.singletonMap("status", ConnectionStatus.DISCONNECTED.name()))
+        //                            .build()
     }
 
     private EventDomain processConnect(ConnectionEvent event) {
@@ -253,17 +255,17 @@ public class EventProcessorImpl implements EventProcessor {
         connectionRepository.save(domain);
 
         return EventDomain.builder()
-                        .eventId(event.getEventId())
-                        .device(deviceDomain)
-                        .type(event.getType())
-                        .time(event.getTime())
-                        .build();
-//                EventDomain.builder()
-//                        .eventId(event.getEventId())
-//                        .device(deviceDomain)
-//                        .type(EventType.ATTRIBUTE_UPDATE)
-//                        .time(event.getTime())
-//                        .details(Collections.singletonMap("status", ConnectionStatus.NORMAL.name()))
-//                        .build()
+                .eventId(event.getEventId())
+                .device(deviceDomain)
+                .type(event.getType())
+                .time(event.getTime())
+                .build();
+        //                EventDomain.builder()
+        //                        .eventId(event.getEventId())
+        //                        .device(deviceDomain)
+        //                        .type(EventType.ATTRIBUTE_UPDATE)
+        //                        .time(event.getTime())
+        //                        .details(Collections.singletonMap("status", ConnectionStatus.NORMAL.name()))
+        //                        .build()
     }
 }

@@ -1,19 +1,17 @@
 package top.fengpingtech.solen.app.service;
 
-import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.support.TransactionTemplate;
-import top.fengpingtech.solen.app.config.SolenServerProperties;
-import top.fengpingtech.solen.app.persistence.event.EventJdbcCleaner;
-
-import javax.annotation.PostConstruct;
 import java.time.*;
-import java.time.temporal.Temporal;
 import java.util.Date;
 import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.PostConstruct;
+import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.support.TransactionTemplate;
+import top.fengpingtech.solen.app.config.SolenServerProperties;
+import top.fengpingtech.solen.app.persistence.event.EventJdbcCleaner;
 
 @Service
 public class EventCleaner {
@@ -25,8 +23,10 @@ public class EventCleaner {
 
     private final ScheduledExecutorService executorService;
 
-    public EventCleaner(TransactionTemplate transactionTemplate, SolenServerProperties serverProperties,
-                        EventJdbcCleaner eventJdbcCleaner) {
+    public EventCleaner(
+            TransactionTemplate transactionTemplate,
+            SolenServerProperties serverProperties,
+            EventJdbcCleaner eventJdbcCleaner) {
         this.transactionTemplate = transactionTemplate;
         this.serverProperties = serverProperties;
         this.eventJdbcCleaner = eventJdbcCleaner;

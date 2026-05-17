@@ -1,9 +1,9 @@
 package top.fengpingtech.solen.app.persistence.sqlite;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
 
 class SQLiteDialectTest {
     @Test

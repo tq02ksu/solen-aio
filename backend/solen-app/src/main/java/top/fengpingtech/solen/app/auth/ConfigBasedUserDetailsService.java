@@ -17,8 +17,7 @@ public class ConfigBasedUserDetailsService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String s) throws UsernameNotFoundException {
-        return tenants.getTenants()
-                .stream()
+        return tenants.getTenants().stream()
                 .filter(t -> t.getAppKey().equals(s))
                 .map(t -> {
                     Tenant copy = new Tenant();
@@ -26,6 +25,7 @@ public class ConfigBasedUserDetailsService implements UserDetailsService {
                     return copy;
                 })
                 .map(TenantUserDetails::new)
-                .findFirst().orElseThrow(() -> new IllegalArgumentException("user with name " + s + " not found!"));
+                .findFirst()
+                .orElseThrow(() -> new IllegalArgumentException("user with name " + s + " not found!"));
     }
 }

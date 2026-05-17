@@ -26,8 +26,10 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 
     private final JwtService jwtService;
 
-    public SecurityConfiguration(@Qualifier("configBasedUserDetailsService") UserDetailsService userDetailsService,
-                                 AppKeyAuthenticationProvider appKeyAuthenticationProvider, JwtService jwtService) {
+    public SecurityConfiguration(
+            @Qualifier("configBasedUserDetailsService") UserDetailsService userDetailsService,
+            AppKeyAuthenticationProvider appKeyAuthenticationProvider,
+            JwtService jwtService) {
         this.userDetailsService = userDetailsService;
         this.appKeyAuthenticationProvider = appKeyAuthenticationProvider;
         this.jwtService = jwtService;
@@ -36,15 +38,21 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.authenticationProvider(appKeyAuthenticationProvider)
-            .userDetailsService(userDetailsService).passwordEncoder(passwordEncoder());
+                .userDetailsService(userDetailsService)
+                .passwordEncoder(passwordEncoder());
     }
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.cors().and().csrf().disable()
+        http.cors()
+                .and()
+                .csrf()
+                .disable()
                 .authorizeRequests()
-                .antMatchers("/authenticate", "/actuator/**").permitAll()
-                .anyRequest().authenticated()
+                .antMatchers("/authenticate", "/actuator/**")
+                .permitAll()
+                .anyRequest()
+                .authenticated()
                 .and()
                 .addFilter(new JwtAuthenticationTokenFilter(authenticationManager(), jwtService))
                 .addFilter(new JwtAuthorizationFilter(authenticationManager(), jwtService))
@@ -62,7 +70,6 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
     public static PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(10);
     }
-
 
     @Bean
     CorsConfigurationSource corsConfigurationSource() {

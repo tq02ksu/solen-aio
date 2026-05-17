@@ -4,11 +4,8 @@ import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.netty.util.AttributeKey;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
-
 import java.net.SocketAddress;
+import org.slf4j.MDC;
 
 public class TracingLogHandler extends ChannelDuplexHandler {
 
@@ -54,7 +51,9 @@ public class TracingLogHandler extends ChannelDuplexHandler {
     @Override
     public void connect(
             ChannelHandlerContext ctx,
-            SocketAddress remoteAddress, SocketAddress localAddress, ChannelPromise promise) {
+            SocketAddress remoteAddress,
+            SocketAddress localAddress,
+            ChannelPromise promise) {
         wrapTracing(ctx, () -> ctx.connect(remoteAddress, localAddress, promise));
     }
 
@@ -65,12 +64,12 @@ public class TracingLogHandler extends ChannelDuplexHandler {
 
     @Override
     public void close(ChannelHandlerContext ctx, ChannelPromise promise) {
-        wrapTracing(ctx, () ->  ctx.close(promise));
+        wrapTracing(ctx, () -> ctx.close(promise));
     }
 
     @Override
     public void deregister(ChannelHandlerContext ctx, ChannelPromise promise) {
-        wrapTracing(ctx, () ->  ctx.deregister(promise));
+        wrapTracing(ctx, () -> ctx.deregister(promise));
     }
 
     @Override
@@ -80,12 +79,12 @@ public class TracingLogHandler extends ChannelDuplexHandler {
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
-        wrapTracing(ctx, () ->  ctx.fireChannelRead(msg));
+        wrapTracing(ctx, () -> ctx.fireChannelRead(msg));
     }
 
     @Override
     public void write(ChannelHandlerContext ctx, Object msg, ChannelPromise promise) {
-        wrapTracing(ctx, () ->  ctx.write(msg, promise));
+        wrapTracing(ctx, () -> ctx.write(msg, promise));
     }
 
     @Override
@@ -116,7 +115,8 @@ public class TracingLogHandler extends ChannelDuplexHandler {
         String channelId = "0x" + ctx.channel().id().asShortText();
         MDC.put("X-B3-SpanId", channelId);
 
-        String deviceId = ctx.channel().attr( AttributeKey.<String>valueOf("DeviceId")).get();
+        String deviceId =
+                ctx.channel().attr(AttributeKey.<String>valueOf("DeviceId")).get();
         if (deviceId != null) {
             MDC.put("X-B3-TraceId", deviceId);
         } else {

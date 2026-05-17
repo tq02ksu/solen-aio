@@ -6,5 +6,4 @@ import org.springframework.stereotype.Repository;
 import top.fengpingtech.solen.app.domain.DeviceDomain;
 
 @Repository
-public interface DeviceRepository extends JpaRepository<DeviceDomain, String>, JpaSpecificationExecutor<DeviceDomain> {
-}
+public interface DeviceRepository extends JpaRepository<DeviceDomain, String>, JpaSpecificationExecutor<DeviceDomain> {}

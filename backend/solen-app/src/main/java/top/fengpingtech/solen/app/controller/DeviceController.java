@@ -1,5 +1,11 @@
 package top.fengpingtech.solen.app.controller;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import javax.persistence.criteria.Predicate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
@@ -20,22 +26,10 @@ import top.fengpingtech.solen.app.auth.AuthService;
 import top.fengpingtech.solen.app.controller.bean.DeviceBean;
 import top.fengpingtech.solen.app.controller.bean.DeviceQueryRequest;
 import top.fengpingtech.solen.app.controller.bean.PageableResponse;
-import top.fengpingtech.solen.app.domain.Coordinate;
-import top.fengpingtech.solen.app.domain.CoordinateSystem;
 import top.fengpingtech.solen.app.domain.DeviceDomain;
 import top.fengpingtech.solen.app.mapper.DeviceMapper;
 import top.fengpingtech.solen.app.repository.DeviceRepository;
-import top.fengpingtech.solen.app.service.CoordinateTransformationService;
 import top.fengpingtech.solen.server.DeviceService;
-
-import javax.persistence.criteria.Predicate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -48,11 +42,13 @@ public class DeviceController {
 
     private final AuthService authService;
 
-
     private final DeviceMapper deviceMapper;
 
-    public DeviceController(DeviceService deviceService, DeviceRepository deviceRepository,
-                            AuthService authService, DeviceMapper deviceMapper) {
+    public DeviceController(
+            DeviceService deviceService,
+            DeviceRepository deviceRepository,
+            AuthService authService,
+            DeviceMapper deviceMapper) {
         this.deviceService = deviceService;
         this.deviceRepository = deviceRepository;
         this.authService = authService;
@@ -69,15 +65,15 @@ public class DeviceController {
             request.setPageSize(100);
         }
 
-        PageRequest page = PageRequest.of(request.getPageNo() - 1, request.getPageSize(),
-                Sort.by(Sort.Direction.DESC, "deviceId"));
+        PageRequest page = PageRequest.of(
+                request.getPageNo() - 1, request.getPageSize(), Sort.by(Sort.Direction.DESC, "deviceId"));
 
         Specification<DeviceDomain> spec = (root, cq, cb) -> {
             List<Predicate> list = new ArrayList<>();
 
             if (request.getDeviceId() != null && !request.getDeviceId().isEmpty()) {
-                list.add(root.get("deviceId").in(Arrays.asList(
-                        request.getDeviceId().split("[, |]"))));
+                list.add(root.get("deviceId")
+                        .in(Arrays.asList(request.getDeviceId().split("[, |]"))));
             }
 
             if (request.getStatus() != null) {
@@ -97,7 +93,7 @@ public class DeviceController {
     }
 
     @GetMapping("/device/{deviceId}")
-    public DeviceBean detail(@PathVariable ("deviceId") String deviceId) {
+    public DeviceBean detail(@PathVariable("deviceId") String deviceId) {
         Optional<DeviceDomain> device = deviceRepository.findById(deviceId);
 
         if (!device.isPresent()) {
@@ -108,7 +104,6 @@ public class DeviceController {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "can not visit the device");
         }
         return deviceMapper.mapToBean(domain);
-
     }
 
     @DeleteMapping("/device/{deviceId}")
@@ -146,14 +141,11 @@ public class DeviceController {
 
         deviceService.sendControl(String.valueOf(request.getDeviceId()), request.getCtrl());
 
-
-
         return deviceMapper.mapToBean(domain);
     }
 
     @PostMapping("/sendAscii")
-    public DeviceBean sendAscii(
-            @RequestBody SendRequest request) throws Exception {
+    public DeviceBean sendAscii(@RequestBody SendRequest request) throws Exception {
         if (request.getData() == null) {
             throw new IllegalArgumentException("data can not be null");
         }
@@ -174,19 +166,19 @@ public class DeviceController {
         return deviceMapper.mapToBean(domain);
     }
 
-//    private DeviceBean buildBean(DeviceDomain device) {
-//        DeviceBean bean = DeviceBean.builder()
-//
-//                .build();
-//
-//        if (device.getLng() != null && device.getLat() != null) {
-//            Coordinate coordinate = new Coordinate(CoordinateSystem.WGS84, device.getLng(), device.getLat());
-//            bean.setCoordinates(Arrays.asList(
-////                    coordinate ,
-////                    coordinateTransformationService.wgs84ToBd09(coordinate),
-////                    coordinateTransformationService.wgs84ToGcj02(coordinate)
-//            ));
-//        }
-//        return bean;
-//    }
+    //    private DeviceBean buildBean(DeviceDomain device) {
+    //        DeviceBean bean = DeviceBean.builder()
+    //
+    //                .build();
+    //
+    //        if (device.getLng() != null && device.getLat() != null) {
+    //            Coordinate coordinate = new Coordinate(CoordinateSystem.WGS84, device.getLng(), device.getLat());
+    //            bean.setCoordinates(Arrays.asList(
+    ////                    coordinate ,
+    ////                    coordinateTransformationService.wgs84ToBd09(coordinate),
+    ////                    coordinateTransformationService.wgs84ToGcj02(coordinate)
+    //            ));
+    //        }
+    //        return bean;
+    //    }
 }

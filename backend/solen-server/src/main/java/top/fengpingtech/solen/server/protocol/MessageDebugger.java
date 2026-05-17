@@ -25,7 +25,6 @@ public class MessageDebugger extends ChannelDuplexHandler {
         if (msg instanceof ByteBuf) {
             if (logger.isDebugEnabled()) {
                 logByteBuf((ByteBuf) msg, "sending bytes", ctx.channel().toString());
-
             }
         }
         ctx.write(msg, promise);

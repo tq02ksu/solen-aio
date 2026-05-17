@@ -1,5 +1,10 @@
 package top.fengpingtech.solen.app.controller;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
+import javax.persistence.criteria.Predicate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -13,12 +18,6 @@ import top.fengpingtech.solen.app.controller.bean.EventQueryRequest;
 import top.fengpingtech.solen.app.domain.EventDomain;
 import top.fengpingtech.solen.app.mapper.EventMapper;
 import top.fengpingtech.solen.app.repository.EventRepository;
-
-import javax.persistence.criteria.Predicate;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api")
@@ -45,8 +44,8 @@ public class EventController {
             request.setPageSize(100);
         }
 
-        PageRequest page = PageRequest.of(request.getPageNo() - 1, request.getPageSize(),
-                Sort.by(Sort.Direction.DESC, "eventId"));
+        PageRequest page =
+                PageRequest.of(request.getPageNo() - 1, request.getPageSize(), Sort.by(Sort.Direction.DESC, "eventId"));
         Specification<EventDomain> spec = (root, cq, cb) -> {
             List<Predicate> list = new ArrayList<>();
             if (request.getStartTime() != null) {
@@ -58,7 +57,8 @@ public class EventController {
             }
 
             if (request.getDeviceId() != null) {
-                list.add(root.get("deviceId").in(Arrays.asList(request.getDeviceId().split("[, |]"))));
+                list.add(root.get("deviceId")
+                        .in(Arrays.asList(request.getDeviceId().split("[, |]"))));
             }
 
             if (request.getStartId() != null) {
@@ -66,8 +66,7 @@ public class EventController {
             }
 
             if (request.getType() != null) {
-                list.add(root.get("type").in(Arrays.asList(
-                        request.getType().split("[, |]"))));
+                list.add(root.get("type").in(Arrays.asList(request.getType().split("[, |]"))));
             }
 
             authService.fillAuthPredicate(root.get("device").get("deviceId"), cb, list);
@@ -80,10 +79,12 @@ public class EventController {
     }
 
     private List<EventBean> convert(List<EventDomain> content) {
-        return content.stream().map(domain -> {
-            EventBean bean = new EventBean();
-            BeanUtils.copyProperties(domain, bean);
-            return bean;
-        }).collect(Collectors.toList());
+        return content.stream()
+                .map(domain -> {
+                    EventBean bean = new EventBean();
+                    BeanUtils.copyProperties(domain, bean);
+                    return bean;
+                })
+                .collect(Collectors.toList());
     }
 }

@@ -1,13 +1,13 @@
 package top.fengpingtech.solen.app.controller;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import top.fengpingtech.solen.app.SolenApplicationTests;
 import top.fengpingtech.solen.app.controller.bean.DeviceBean;
 import top.fengpingtech.solen.app.controller.bean.DeviceQueryRequest;
 import top.fengpingtech.solen.app.controller.bean.PageableResponse;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 class DeviceControllerTest extends SolenApplicationTests {
 
@@ -23,5 +23,4 @@ class DeviceControllerTest extends SolenApplicationTests {
         PageableResponse<DeviceBean> response = deviceController.list(request);
         System.out.println(response);
     }
-
 }

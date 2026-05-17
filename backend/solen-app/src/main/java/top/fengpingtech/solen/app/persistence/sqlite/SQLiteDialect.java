@@ -1,10 +1,9 @@
 package top.fengpingtech.solen.app.persistence.sqlite;
 
+import java.sql.Types;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.identity.IdentityColumnSupport;
 import org.hibernate.dialect.identity.IdentityColumnSupportImpl;
-
-import java.sql.Types;
 
 public class SQLiteDialect extends Dialect {
     public SQLiteDialect() {

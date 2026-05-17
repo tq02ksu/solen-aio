@@ -1,22 +1,20 @@
 package top.fengpingtech.solen.app.perf;
 
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
-
 import java.nio.file.Path;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 
 final class EmbeddedDbJdbcPerfSupport {
     private static final String SQLITE_DRIVER = "org.sqlite.JDBC";
     private static final String EVENT_DETAILS = "{\"content\":\"payload\"}";
 
-    private EmbeddedDbJdbcPerfSupport() {
-    }
+    private EmbeddedDbJdbcPerfSupport() {}
 
     static PerfRunSummary runEvaluation() {
         try {
@@ -34,17 +32,26 @@ final class EmbeddedDbJdbcPerfSupport {
 
                 PerfRunSummary summary = new PerfRunSummary(EmbeddedDbVariant.SQLITE_JDBC);
                 long writeBatchNanos = measureWriteBatch(connection);
-                summary.add("write-batch", writeBatchNanos,
-                        computeOperationsPerSecond(EmbeddedDbJpaPerfWorkload.WRITE_BATCH_DEVICE_COUNT
-                                * EmbeddedDbJpaPerfWorkload.WRITE_BATCH_EVENTS_PER_DEVICE, writeBatchNanos));
+                summary.add(
+                        "write-batch",
+                        writeBatchNanos,
+                        computeOperationsPerSecond(
+                                EmbeddedDbJpaPerfWorkload.WRITE_BATCH_DEVICE_COUNT
+                                        * EmbeddedDbJpaPerfWorkload.WRITE_BATCH_EVENTS_PER_DEVICE,
+                                writeBatchNanos));
                 long startupMaxIdNanos = measureStartupMaxId(connection);
                 summary.add("startup-max-id", startupMaxIdNanos, computeOperationsPerSecond(1, startupMaxIdNanos));
                 long recentPageNanos = measureRecentPage(connection);
-                summary.add("page-recent", recentPageNanos,
+                summary.add(
+                        "page-recent",
+                        recentPageNanos,
                         computeOperationsPerSecond(EmbeddedDbJpaPerfWorkload.PAGE_SIZE, recentPageNanos));
                 long retentionDeleteNanos = measureRetentionDelete(connection);
-                summary.add("cleanup-retention", retentionDeleteNanos,
-                        computeOperationsPerSecond(EmbeddedDbJpaPerfWorkload.DEVICE_COUNT * 170L, retentionDeleteNanos));
+                summary.add(
+                        "cleanup-retention",
+                        retentionDeleteNanos,
+                        computeOperationsPerSecond(
+                                EmbeddedDbJpaPerfWorkload.DEVICE_COUNT * 170L, retentionDeleteNanos));
                 return summary;
             }
         } catch (Exception e) {
@@ -55,16 +62,17 @@ final class EmbeddedDbJdbcPerfSupport {
     private static void seedDataset(Connection connection) throws SQLException {
         executeInTransaction(connection, () -> {
             try (PreparedStatement deviceStatement = connection.prepareStatement(
-                    "insert into device (device_id, status, lac, ci, input_stat, output_stat, rssi, voltage, temperature, gravity, uptime, lat, lng) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                 PreparedStatement eventStatement = connection.prepareStatement(
-                         "insert into event (event_id, device_id, type, time, details) values (?, ?, ?, ?, ?)")) {
+                            "insert into device (device_id, status, lac, ci, input_stat, output_stat, rssi, voltage, temperature, gravity, uptime, lat, lng) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    PreparedStatement eventStatement = connection.prepareStatement(
+                            "insert into event (event_id, device_id, type, time, details) values (?, ?, ?, ?, ?)")) {
                 for (int deviceIndex = 0; deviceIndex < EmbeddedDbJpaPerfWorkload.DEVICE_COUNT; deviceIndex++) {
                     String deviceId = String.format("device-%04d", deviceIndex);
                     bindDevice(deviceStatement, deviceId);
                     deviceStatement.addBatch();
 
                     for (int eventIndex = 0; eventIndex < EmbeddedDbJpaPerfWorkload.EVENTS_PER_DEVICE; eventIndex++) {
-                        bindEvent(eventStatement,
+                        bindEvent(
+                                eventStatement,
                                 (long) deviceIndex * EmbeddedDbJpaPerfWorkload.EVENTS_PER_DEVICE + eventIndex + 1,
                                 deviceId,
                                 1_715_831_200_000L + eventIndex * 1_000L);
@@ -84,11 +92,18 @@ final class EmbeddedDbJdbcPerfSupport {
         executeInTransaction(connection, () -> {
             try (PreparedStatement statement = connection.prepareStatement(
                     "insert into event (event_id, device_id, type, time, details) values (?, ?, ?, ?, ?)")) {
-                for (int deviceIndex = 0; deviceIndex < EmbeddedDbJpaPerfWorkload.WRITE_BATCH_DEVICE_COUNT; deviceIndex++) {
+                for (int deviceIndex = 0;
+                        deviceIndex < EmbeddedDbJpaPerfWorkload.WRITE_BATCH_DEVICE_COUNT;
+                        deviceIndex++) {
                     String deviceId = String.format("device-%04d", deviceIndex);
-                    for (int eventIndex = 0; eventIndex < EmbeddedDbJpaPerfWorkload.WRITE_BATCH_EVENTS_PER_DEVICE; eventIndex++) {
-                        bindEvent(statement,
-                                nextEventId + (long) deviceIndex * EmbeddedDbJpaPerfWorkload.WRITE_BATCH_EVENTS_PER_DEVICE + eventIndex,
+                    for (int eventIndex = 0;
+                            eventIndex < EmbeddedDbJpaPerfWorkload.WRITE_BATCH_EVENTS_PER_DEVICE;
+                            eventIndex++) {
+                        bindEvent(
+                                statement,
+                                nextEventId
+                                        + (long) deviceIndex * EmbeddedDbJpaPerfWorkload.WRITE_BATCH_EVENTS_PER_DEVICE
+                                        + eventIndex,
                                 deviceId,
                                 1_715_833_200_000L + deviceIndex * 10_000L + eventIndex * 1_000L);
                         statement.addBatch();
@@ -110,7 +125,8 @@ final class EmbeddedDbJdbcPerfSupport {
         long start = System.nanoTime();
         try (PreparedStatement statement = connection.prepareStatement(
                 "select event_id from event where device_id = ? order by event_id desc limit ?")) {
-            statement.setString(1, String.format("device-%04d", EmbeddedDbJpaPerfWorkload.WRITE_BATCH_DEVICE_COUNT - 1));
+            statement.setString(
+                    1, String.format("device-%04d", EmbeddedDbJpaPerfWorkload.WRITE_BATCH_DEVICE_COUNT - 1));
             statement.setInt(2, EmbeddedDbJpaPerfWorkload.PAGE_SIZE);
             try (ResultSet resultSet = statement.executeQuery()) {
                 while (resultSet.next()) {
@@ -124,8 +140,7 @@ final class EmbeddedDbJdbcPerfSupport {
     private static long measureRetentionDelete(Connection connection) throws SQLException {
         long start = System.nanoTime();
         executeInTransaction(connection, () -> {
-            try (PreparedStatement statement = connection.prepareStatement(
-                    "delete from event where time < ?")) {
+            try (PreparedStatement statement = connection.prepareStatement("delete from event where time < ?")) {
                 statement.setTimestamp(1, Timestamp.valueOf(EmbeddedDbJpaPerfWorkload.RETENTION_CUTOFF));
                 statement.executeUpdate();
             }
@@ -135,7 +150,7 @@ final class EmbeddedDbJdbcPerfSupport {
 
     private static long readMaxEventId(Connection connection) throws SQLException {
         try (PreparedStatement statement = connection.prepareStatement("select max(event_id) from event");
-             ResultSet resultSet = statement.executeQuery()) {
+                ResultSet resultSet = statement.executeQuery()) {
             if (!resultSet.next()) {
                 return 0L;
             }

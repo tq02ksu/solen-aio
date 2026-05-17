@@ -1,18 +1,17 @@
 package top.fengpingtech.solen.app.auth;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+
+import java.io.IOException;
+import java.util.concurrent.atomic.AtomicReference;
+import javax.servlet.ServletException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.lang.NonNull;
 import org.springframework.mock.web.MockFilterChain;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.mock.web.MockHttpServletResponse;
-
-import javax.servlet.ServletException;
-import java.io.IOException;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 
 class SecurityContextFilterTest {
 
@@ -32,7 +31,8 @@ class SecurityContextFilterTest {
 
         MockFilterChain chain = new MockFilterChain() {
             @Override
-            public void doFilter(@NonNull javax.servlet.ServletRequest request, @NonNull javax.servlet.ServletResponse response) {
+            public void doFilter(
+                    @NonNull javax.servlet.ServletRequest request, @NonNull javax.servlet.ServletResponse response) {
                 principalInChain.set(SecurityContext.getPrincipal());
             }
         };
@@ -43,5 +43,3 @@ class SecurityContextFilterTest {
         assertNull(SecurityContext.getPrincipal());
     }
 }
-
-

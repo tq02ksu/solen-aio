@@ -1,22 +1,22 @@
-//package top.fengpingtech.solen;
+// package top.fengpingtech.solen;
 //
-//import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
+// import org.springframework.scheduling.concurrent.CustomizableThreadFactory;
 //
-//import javax.annotation.PostConstruct;
-//import javax.annotation.PreDestroy;
-//import java.util.Date;
-//import java.util.HashSet;
-//import java.util.List;
-//import java.util.Map;
-//import java.util.Set;
-//import java.util.concurrent.Executors;
-//import java.util.concurrent.ScheduledExecutorService;
-//import java.util.concurrent.TimeUnit;
-//import java.util.regex.Matcher;
-//import java.util.regex.Pattern;
-//import java.util.stream.Collectors;
+// import javax.annotation.PostConstruct;
+// import javax.annotation.PreDestroy;
+// import java.util.Date;
+// import java.util.HashSet;
+// import java.util.List;
+// import java.util.Map;
+// import java.util.Set;
+// import java.util.concurrent.Executors;
+// import java.util.concurrent.ScheduledExecutorService;
+// import java.util.concurrent.TimeUnit;
+// import java.util.regex.Matcher;
+// import java.util.regex.Pattern;
+// import java.util.stream.Collectors;
 //
-///**
+/// **
 // * 基准加增量的方式同步数据，
 // * 数据库里保存全量数据的同时，记录全量数据的时间点（增量同步的进度点）。
 // *  应用程序启动后，开启一个线程，每三秒执行一次增量同步。
@@ -30,10 +30,11 @@
 // *  处理消息之前与这个消息做一个比较，存在的消息直接跳过，不存在的处理之后加到集合。
 // *
 // */
-//public abstract class DeltaSync {
+// public abstract class DeltaSync {
 //    private static final Long ONE_DAY_IN_MILLS = 86400L * 1000;
 //
-//    private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(new CustomizableThreadFactory(){
+//    private final ScheduledExecutorService executorService = Executors.newSingleThreadScheduledExecutor(new
+// CustomizableThreadFactory(){
 //        {
 //            setDaemon(true);
 //            setThreadNamePrefix("DeltaSync-");
@@ -153,18 +154,19 @@
 //    abstract void saveSavePoint(Date savePoint);
 //
 //    public static void main(String[] args) throws Exception {
-//        String json = "{\"IP_ADDRESS\":\"\",\"MAC_ADDRESS\":\"\",\"SESSION\":\"\",\"reserve\":\"\",\"DEVICE_ID\":\"\",\"info_type\":\"2\",\"body\":{\"CPU_USE_INFO\":\"35%\",\"MEM_AVAI_INFO\":\"2.1G\",\"STORAGE_AVAI_INFO\":\"101G\",\"STATUS_CODE\":\"00\",\"devicelist\":[{\"DEVICE_ID\":\"1028\",\"STATUS_CODE\":\"0\",\"STATUS_REASON_CODE\":\"\"},{\"DEVICE_ID\":\"1025\",\"STATUS_CODE\":\"0\",\"STATUS_REASON_CODE\":\"\"},{\"DEVICE_ID\":\"1021\",\"STATUS_CODE\":\"0\",\"STATUS_REASON_CODE\":\"\"},{\"DEVICE_ID\":\"1027\",\"STATUS_CODE\":\"0\",\"STATUS_REASON_CODE\":\"\"}]}}";
+//        String json =
+// "{\"IP_ADDRESS\":\"\",\"MAC_ADDRESS\":\"\",\"SESSION\":\"\",\"reserve\":\"\",\"DEVICE_ID\":\"\",\"info_type\":\"2\",\"body\":{\"CPU_USE_INFO\":\"35%\",\"MEM_AVAI_INFO\":\"2.1G\",\"STORAGE_AVAI_INFO\":\"101G\",\"STATUS_CODE\":\"00\",\"devicelist\":[{\"DEVICE_ID\":\"1028\",\"STATUS_CODE\":\"0\",\"STATUS_REASON_CODE\":\"\"},{\"DEVICE_ID\":\"1025\",\"STATUS_CODE\":\"0\",\"STATUS_REASON_CODE\":\"\"},{\"DEVICE_ID\":\"1021\",\"STATUS_CODE\":\"0\",\"STATUS_REASON_CODE\":\"\"},{\"DEVICE_ID\":\"1027\",\"STATUS_CODE\":\"0\",\"STATUS_REASON_CODE\":\"\"}]}}";
 //        Matcher matcher = Pattern.compile("^.*info_type\":\"(\\d+)\".*").matcher(json);
 //        if (matcher.matches()) {
 //            System.out.println(matcher.group(1));
 //        }
 //    }
-//}
+// }
 //
-//interface Page<T> {
+// interface Page<T> {
 //    int getTotal();
 //    List<T> getList();
-//}
+// }
 //
-//interface Device {
-//}
+// interface Device {
+// }

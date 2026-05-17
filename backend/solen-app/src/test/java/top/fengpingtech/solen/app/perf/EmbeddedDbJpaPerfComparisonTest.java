@@ -1,9 +1,9 @@
 package top.fengpingtech.solen.app.perf;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
 
 class EmbeddedDbJpaPerfComparisonTest {
     @Test

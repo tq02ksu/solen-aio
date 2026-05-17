@@ -1,14 +1,13 @@
 package top.fengpingtech.solen;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.core.io.ClassPathResource;
-
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import org.junit.jupiter.api.Test;
+import org.springframework.core.io.ClassPathResource;
 
 public class EmbeddedDatabaseTest {
 
@@ -30,7 +29,7 @@ public class EmbeddedDatabaseTest {
     private String loadResource(String f) throws Exception {
         ClassPathResource resource = new ClassPathResource(f);
         try (ByteArrayOutputStream out = new ByteArrayOutputStream();
-             InputStream in = resource.getInputStream()) {
+                InputStream in = resource.getInputStream()) {
             for (int b = in.read(); b != -1; b = in.read()) {
                 out.write(b);
             }

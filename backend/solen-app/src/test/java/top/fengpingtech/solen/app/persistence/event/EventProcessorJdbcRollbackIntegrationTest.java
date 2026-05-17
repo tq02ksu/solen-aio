@@ -1,5 +1,14 @@
 package top.fengpingtech.solen.app.persistence.event;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Date;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -13,16 +22,6 @@ import top.fengpingtech.solen.app.service.EventProcessorImpl;
 import top.fengpingtech.solen.server.model.ConnectionEvent;
 import top.fengpingtech.solen.server.model.EventType;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.Collections;
-import java.util.Date;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-
 @SpringBootTest(classes = SolenApplication.class)
 class EventProcessorJdbcRollbackIntegrationTest {
     private static final String DATASOURCE_URL = sqliteUrl("event-processor-rollback-");
@@ -30,7 +29,10 @@ class EventProcessorJdbcRollbackIntegrationTest {
     private static String sqliteUrl(String prefix) {
         try {
             Path dir = Files.createDirectories(Path.of(System.getProperty("java.io.tmpdir"), "opencode"));
-            return "jdbc:sqlite:" + dir.resolve(prefix + UUID.randomUUID() + ".sqlite").toString().replace('\\', '/');
+            return "jdbc:sqlite:"
+                    + dir.resolve(prefix + UUID.randomUUID() + ".sqlite")
+                            .toString()
+                            .replace('\\', '/');
         } catch (IOException e) {
             throw new IllegalStateException("failed to prepare sqlite test path", e);
         }
@@ -61,7 +63,9 @@ class EventProcessorJdbcRollbackIntegrationTest {
     void rollsBackDeviceAndConnectionChangesWhenJdbcInsertFails() {
         eventJdbcWriter.insert(Collections.singletonList(top.fengpingtech.solen.app.domain.EventDomain.builder()
                 .eventId(9001L)
-                .device(top.fengpingtech.solen.app.domain.DeviceDomain.builder().deviceId("seed-device").build())
+                .device(top.fengpingtech.solen.app.domain.DeviceDomain.builder()
+                        .deviceId("seed-device")
+                        .build())
                 .type(EventType.MESSAGE_RECEIVING)
                 .time(new Date(1_700_000_000_000L))
                 .details(Collections.singletonMap("content", "seed"))

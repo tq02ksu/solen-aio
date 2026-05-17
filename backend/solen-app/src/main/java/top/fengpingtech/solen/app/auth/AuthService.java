@@ -1,16 +1,15 @@
 package top.fengpingtech.solen.app.auth;
 
+import java.util.List;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.Path;
+import javax.persistence.criteria.Predicate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import top.fengpingtech.solen.app.config.AuthProperties;
 import top.fengpingtech.solen.app.domain.DeviceDomain;
-
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.Path;
-import javax.persistence.criteria.Predicate;
-import java.util.List;
 
 @Component
 public class AuthService {
@@ -52,8 +51,7 @@ public class AuthService {
 
         String resolvedPrincipal = principal;
 
-        return authProperties.getTenants()
-                .stream()
+        return authProperties.getTenants().stream()
                 .filter(t -> t.getAppKey().equalsIgnoreCase(resolvedPrincipal))
                 .findFirst()
                 .orElse(null);
@@ -62,7 +60,9 @@ public class AuthService {
     public void fillAuthPredicate(Path<String> devicePath, CriteriaBuilder cb, List<Predicate> list) {
         Tenant tenant = getTenant();
 
-        if (tenant == null || tenant.getDevicePatterns() == null || tenant.getDevicePatterns().isEmpty()) {
+        if (tenant == null
+                || tenant.getDevicePatterns() == null
+                || tenant.getDevicePatterns().isEmpty()) {
             list.add(cb.disjunction());
             return;
         }

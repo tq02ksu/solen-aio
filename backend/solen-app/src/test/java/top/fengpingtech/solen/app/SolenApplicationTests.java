@@ -8,6 +8,5 @@ import org.springframework.boot.test.context.SpringBootTest;
 @AutoConfigureMockMvc
 public class SolenApplicationTests {
     @Test
-    void contextLoads() {
-    }
+    void contextLoads() {}
 }

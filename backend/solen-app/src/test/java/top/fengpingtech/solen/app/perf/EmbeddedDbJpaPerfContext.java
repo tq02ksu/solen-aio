@@ -13,11 +13,12 @@ final class EmbeddedDbJpaPerfContext implements AutoCloseable {
     private final JdbcTemplate jdbcTemplate;
     private final TransactionTemplate transactionTemplate;
 
-    EmbeddedDbJpaPerfContext(ConfigurableApplicationContext applicationContext,
-                             EventRepository eventRepository,
-                             DeviceRepository deviceRepository,
-                             JdbcTemplate jdbcTemplate,
-                             TransactionTemplate transactionTemplate) {
+    EmbeddedDbJpaPerfContext(
+            ConfigurableApplicationContext applicationContext,
+            EventRepository eventRepository,
+            DeviceRepository deviceRepository,
+            JdbcTemplate jdbcTemplate,
+            TransactionTemplate transactionTemplate) {
         this.applicationContext = applicationContext;
         this.eventRepository = eventRepository;
         this.deviceRepository = deviceRepository;

@@ -1,18 +1,18 @@
-//package top.fengpingtech.solen.app.service;
+// package top.fengpingtech.solen.app.service;
 //
-//import com.fasterxml.jackson.databind.ObjectMapper;
-//import com.fasterxml.jackson.dataformat.smile.SmileFactory;
-//import org.junit.Test;
-//import solen.model.Event;
-//import solen.model.EventType;
+// import com.fasterxml.jackson.databind.ObjectMapper;
+// import com.fasterxml.jackson.dataformat.smile.SmileFactory;
+// import org.junit.Test;
+// import solen.model.Event;
+// import solen.model.EventType;
 //
-//import java.util.Arrays;
-//import java.util.Date;
-//import java.util.HashMap;
-//import java.util.List;
-//import java.util.Map;
+// import java.util.Arrays;
+// import java.util.Date;
+// import java.util.HashMap;
+// import java.util.List;
+// import java.util.Map;
 //
-//public class EventRepositoryTest {
+// public class EventRepositoryTest {
 //    @Test
 //    public void testSerialization() throws Exception {
 //        Map<String, String> content = new HashMap<>();
@@ -68,4 +68,4 @@
 //        System.out.println(String.format("%16s", "as"));
 //    }
 //
-//}
+// }

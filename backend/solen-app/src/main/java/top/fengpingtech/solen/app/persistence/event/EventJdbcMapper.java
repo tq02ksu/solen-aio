@@ -12,7 +12,6 @@ public class EventJdbcMapper {
                 event.getDevice().getDeviceId(),
                 event.getType().name(),
                 event.getTime(),
-                mapConverter.convertToDatabaseColumn(event.getDetails())
-        );
+                mapConverter.convertToDatabaseColumn(event.getDetails()));
     }
 }

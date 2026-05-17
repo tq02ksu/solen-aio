@@ -20,7 +20,7 @@ public class ClientMain {
             Bootstrap b = new Bootstrap();
             b.group(group)
                     .channel(NioSocketChannel.class)
-                    //.option(ChannelOption.TCP_NODELAY, true)
+                    // .option(ChannelOption.TCP_NODELAY, true)
                     .handler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         public void initChannel(SocketChannel ch) {
@@ -38,7 +38,7 @@ public class ClientMain {
 
             Thread.sleep(100000000);
             // Wait until the connection is closed.
-//            f.channel().close().sync();
+            //            f.channel().close().sync();
         } finally {
             // Shut down the event loop to terminate all threads.
             group.shutdownGracefully();

@@ -3,15 +3,14 @@ package top.fengpingtech.solen.app.auth;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.slf4j.MDC;
-import org.springframework.stereotype.Component;
-import top.fengpingtech.solen.app.config.AuthProperties;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import org.slf4j.MDC;
+import org.springframework.stereotype.Component;
+import top.fengpingtech.solen.app.config.AuthProperties;
 
 @Component
 public class JwtService {
@@ -29,6 +28,7 @@ public class JwtService {
 
     /**
      * 生成token
+     *
      * @param tenant auth principal
      * @return token string
      */
@@ -39,15 +39,16 @@ public class JwtService {
         map.put("devicePatterns", tenant.getDevicePatterns());
         map.put("roles", tenant.getRoles());
 
-        return Jwts
-                .builder()
+        return Jwts.builder()
                 .setId(jwtId())
                 .setClaims(map)
                 .setIssuedAt(new Date())
                 .setIssuer(authProperties.getJwt().getIssuer())
-                .setExpiration(new Date(System.currentTimeMillis() + authProperties.getJwt().getTtl()))
+                .setExpiration(new Date(
+                        System.currentTimeMillis() + authProperties.getJwt().getTtl()))
                 .setSubject(tenant.getAppKey())
-                .signWith(SignatureAlgorithm.HS256, jwtSecret).compact();
+                .signWith(SignatureAlgorithm.HS256, jwtSecret)
+                .compact();
     }
 
     private String jwtId() {
@@ -59,9 +60,7 @@ public class JwtService {
     }
 
     public Tenant parseJwt(String token) {
-        Claims c = Jwts.parser()
-                .setSigningKey(jwtSecret)
-                .parseClaimsJws(token).getBody();
+        Claims c = Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
 
         Tenant t = new Tenant();
         t.setAppKey(c.getSubject());
@@ -78,7 +77,8 @@ public class JwtService {
      * @return
      */
     public boolean isExpiration(String token) {
-        Claims claims = Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
+        Claims claims =
+                Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody();
         return claims.getExpiration().before(new Date());
     }
 }

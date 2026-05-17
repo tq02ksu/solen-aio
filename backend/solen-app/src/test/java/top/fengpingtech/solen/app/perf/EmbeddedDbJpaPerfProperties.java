@@ -5,8 +5,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 final class EmbeddedDbJpaPerfProperties {
-    private EmbeddedDbJpaPerfProperties() {
-    }
+    private EmbeddedDbJpaPerfProperties() {}
 
     static Map<String, Object> forVariant(EmbeddedDbVariant variant, Path databasePath) {
         Map<String, Object> properties = new LinkedHashMap<>();

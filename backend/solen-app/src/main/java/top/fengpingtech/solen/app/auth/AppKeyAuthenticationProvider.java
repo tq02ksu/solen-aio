@@ -1,5 +1,9 @@
 package top.fengpingtech.solen.app.auth;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,13 +20,8 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-
 @Component
-public class AppKeyAuthenticationProvider  implements AuthenticationProvider {
+public class AppKeyAuthenticationProvider implements AuthenticationProvider {
     private static final Logger logger = LoggerFactory.getLogger(AppKeyAuthenticationProvider.class);
 
     private MessageSourceAccessor messages = SpringSecurityMessageSource.getAccessor();
@@ -31,22 +30,22 @@ public class AppKeyAuthenticationProvider  implements AuthenticationProvider {
 
     private final AppKeySignatureChecker checker;
 
-    public AppKeyAuthenticationProvider(@Qualifier("configBasedUserDetailsService") UserDetailsService userDetailsService, AppKeySignatureChecker checker) {
+    public AppKeyAuthenticationProvider(
+            @Qualifier("configBasedUserDetailsService") UserDetailsService userDetailsService,
+            AppKeySignatureChecker checker) {
         this.userDetailsService = userDetailsService;
         this.checker = checker;
     }
 
     @Override
     public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        String appKey = (authentication.getPrincipal() == null) ? "NONE_PROVIDED"
-                : authentication.getName();
-        UserDetails user ;
+        String appKey = (authentication.getPrincipal() == null) ? "NONE_PROVIDED" : authentication.getName();
+        UserDetails user;
         try {
             user = retrieveUser(appKey, (AppKeyAuthenticationToken) authentication);
         } catch (UsernameNotFoundException notFound) {
-            throw new BadCredentialsException(messages.getMessage(
-                    "AbstractUserDetailsAuthenticationProvider.badCredentials",
-                    "Bad credentials"));
+            throw new BadCredentialsException(
+                    messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
         }
 
         additionalAuthenticationChecks(user, (AppKeyAuthenticationToken) authentication);
@@ -54,15 +53,19 @@ public class AppKeyAuthenticationProvider  implements AuthenticationProvider {
         return createSuccessAuthentication(user, authentication, user);
     }
 
-    private Authentication createSuccessAuthentication(Object principal,
-                                                       Authentication authentication, UserDetails user) {
+    private Authentication createSuccessAuthentication(
+            Object principal, Authentication authentication, UserDetails user) {
         AppKeyAuthenticationToken token = (AppKeyAuthenticationToken) authentication;
-        List<GrantedAuthority> authorities = Optional.ofNullable(user.getAuthorities()).orElseGet(ArrayList::new)
-                .stream()
-                .map(r -> new SimpleGrantedAuthority(r.getAuthority())).collect(Collectors.toList());
+        List<GrantedAuthority> authorities =
+                Optional.ofNullable(user.getAuthorities()).orElseGet(ArrayList::new).stream()
+                        .map(r -> new SimpleGrantedAuthority(r.getAuthority()))
+                        .collect(Collectors.toList());
         AppKeyAuthenticationToken result = new AppKeyAuthenticationToken(
-             token.getPrincipal().toString(), token.getCredentials().toString(), token.getRequestTime(),
-                token.getRequestURI(), authorities);
+                token.getPrincipal().toString(),
+                token.getCredentials().toString(),
+                token.getRequestTime(),
+                token.getRequestURI(),
+                authorities);
         result.setDetails(authentication.getDetails());
 
         return result;
@@ -77,15 +80,13 @@ public class AppKeyAuthenticationProvider  implements AuthenticationProvider {
         return AppKeyAuthenticationToken.class.isAssignableFrom(authentication);
     }
 
-    private void additionalAuthenticationChecks(UserDetails userDetails,
-                                                AppKeyAuthenticationToken authentication)
+    private void additionalAuthenticationChecks(UserDetails userDetails, AppKeyAuthenticationToken authentication)
             throws AuthenticationException {
         if (authentication.getCredentials() == null) {
             logger.debug("Authentication failed: no credentials provided");
 
-            throw new BadCredentialsException(messages.getMessage(
-                    "AbstractUserDetailsAuthenticationProvider.badCredentials",
-                    "Bad credentials"));
+            throw new BadCredentialsException(
+                    messages.getMessage("AbstractUserDetailsAuthenticationProvider.badCredentials", "Bad credentials"));
         }
 
         checker.check(authentication, (TenantUserDetails) userDetails);

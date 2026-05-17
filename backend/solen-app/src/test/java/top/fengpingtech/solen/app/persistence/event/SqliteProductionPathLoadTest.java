@@ -1,5 +1,19 @@
 package top.fengpingtech.solen.app.persistence.event;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import java.util.Collections;
+import java.util.Date;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.locks.LockSupport;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -15,38 +29,22 @@ import top.fengpingtech.solen.app.SolenApplication;
 import top.fengpingtech.solen.app.domain.ConnectionStatus;
 import top.fengpingtech.solen.app.domain.DeviceDomain;
 import top.fengpingtech.solen.app.domain.EventDomain;
-import top.fengpingtech.solen.app.service.EventCleaner;
 import top.fengpingtech.solen.app.repository.DeviceRepository;
 import top.fengpingtech.solen.app.repository.EventRepository;
+import top.fengpingtech.solen.app.service.EventCleaner;
 import top.fengpingtech.solen.server.model.EventType;
-
-import java.util.Collections;
-import java.util.Date;
-import java.util.UUID;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Future;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.locks.LockSupport;
-import java.util.stream.Collectors;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(
         classes = SolenApplication.class,
         properties = {
-                "debug=false",
-                "logging.level.root=INFO",
-                "logging.level.top.fengpingtech.solen=INFO",
-                "logging.level.io.netty=INFO",
-                "logging.level.org.hibernate.SQL=INFO",
-                "logging.level.org.hibernate.type.descriptor.sql.BasicBinder=INFO",
-                "logging.level.org.springframework.jdbc=INFO"
-        }
-)
+            "debug=false",
+            "logging.level.root=INFO",
+            "logging.level.top.fengpingtech.solen=INFO",
+            "logging.level.io.netty=INFO",
+            "logging.level.org.hibernate.SQL=INFO",
+            "logging.level.org.hibernate.type.descriptor.sql.BasicBinder=INFO",
+            "logging.level.org.springframework.jdbc=INFO"
+        })
 class SqliteProductionPathLoadTest {
     private static final String DATASOURCE_URL = "jdbc:sqlite:/tmp/opencode/sqlite-production-path-load-"
             + UUID.randomUUID() + ".sqlite?busy_timeout=5000&journal_mode=WAL";
@@ -55,7 +53,8 @@ class SqliteProductionPathLoadTest {
     private static final int EXPECTED_EVENT_COUNT = TARGET_EVENTS_PER_SECOND * TEST_DURATION_SECONDS;
     private static final int[] TARGET_EVENT_RATES = {167, 250, 333, 500};
     private static final int CONCURRENT_TEST_DURATION_SECONDS = 6;
-    private static final int CONCURRENT_INSERTED_EVENT_COUNT = TARGET_EVENTS_PER_SECOND * CONCURRENT_TEST_DURATION_SECONDS;
+    private static final int CONCURRENT_INSERTED_EVENT_COUNT =
+            TARGET_EVENTS_PER_SECOND * CONCURRENT_TEST_DURATION_SECONDS;
     private static final int CONCURRENT_CLEANUP_EVENT_COUNT = 300;
     private static final long CONCURRENT_EVENT_TIME_BASE_MILLIS = 1_715_900_000_000L;
     private static final long CONCURRENT_EVENT_ID_BASE = 10_000L;
@@ -113,9 +112,8 @@ class SqliteProductionPathLoadTest {
         for (int targetRate : TARGET_EVENT_RATES) {
             jdbcTemplate.update("delete from event");
 
-            int expectedEventCount = targetRate == TARGET_EVENTS_PER_SECOND
-                    ? EXPECTED_EVENT_COUNT
-                    : targetRate * TEST_DURATION_SECONDS;
+            int expectedEventCount =
+                    targetRate == TARGET_EVENTS_PER_SECOND ? EXPECTED_EVENT_COUNT : targetRate * TEST_DURATION_SECONDS;
             long startNanos = System.nanoTime();
             for (int eventIndex = 0; eventIndex < expectedEventCount; eventIndex++) {
                 long targetNanos = startNanos + ((long) eventIndex * NANOS_PER_SECOND) / targetRate;
@@ -173,7 +171,8 @@ class SqliteProductionPathLoadTest {
                 try {
                     long startNanos = System.nanoTime();
                     for (int eventIndex = 0; eventIndex < CONCURRENT_INSERTED_EVENT_COUNT; eventIndex++) {
-                        long targetNanos = startNanos + ((long) eventIndex * NANOS_PER_SECOND) / TARGET_EVENTS_PER_SECOND;
+                        long targetNanos =
+                                startNanos + ((long) eventIndex * NANOS_PER_SECOND) / TARGET_EVENTS_PER_SECOND;
                         long waitNanos = targetNanos - System.nanoTime();
                         if (waitNanos > 0L) {
                             LockSupport.parkNanos(waitNanos);
@@ -197,17 +196,21 @@ class SqliteProductionPathLoadTest {
             Future<?> readerFuture = executorService.submit(() -> {
                 try {
                     while (!writerFinished.get()) {
-                        eventRepository.findAll(
-                                (root, query, cb) -> cb.equal(root.get("device").get("deviceId"), deviceId),
-                                PageRequest.of(0, 25, Sort.by(Sort.Direction.DESC, "eventId"))
-                        ).getContent();
+                        eventRepository
+                                .findAll(
+                                        (root, query, cb) ->
+                                                cb.equal(root.get("device").get("deviceId"), deviceId),
+                                        PageRequest.of(0, 25, Sort.by(Sort.Direction.DESC, "eventId")))
+                                .getContent();
                         LockSupport.parkNanos(READER_POLL_INTERVAL_NANOS);
                     }
 
-                    eventRepository.findAll(
-                            (root, query, cb) -> cb.equal(root.get("device").get("deviceId"), deviceId),
-                            PageRequest.of(0, 25, Sort.by(Sort.Direction.DESC, "eventId"))
-                    ).getContent();
+                    eventRepository
+                            .findAll(
+                                    (root, query, cb) ->
+                                            cb.equal(root.get("device").get("deviceId"), deviceId),
+                                    PageRequest.of(0, 25, Sort.by(Sort.Direction.DESC, "eventId")))
+                            .getContent();
                 } catch (Throwable throwable) {
                     threadFailures.add(throwable);
                 }
@@ -233,14 +236,13 @@ class SqliteProductionPathLoadTest {
             executorService.shutdownNow();
         }
 
-        assertTrue(threadFailures.isEmpty(), () -> "Concurrent verification failures: "
-                + threadFailures.stream().map(Throwable::toString).collect(Collectors.joining(", ")));
+        assertTrue(
+                threadFailures.isEmpty(),
+                () -> "Concurrent verification failures: "
+                        + threadFailures.stream().map(Throwable::toString).collect(Collectors.joining(", ")));
 
-        long remainingEventCount = jdbcTemplate.queryForObject(
-                "select count(*) from event where device_id = ?",
-                Long.class,
-                deviceId
-        );
+        long remainingEventCount =
+                jdbcTemplate.queryForObject("select count(*) from event where device_id = ?", Long.class, deviceId);
 
         assertEquals(CONCURRENT_INSERTED_EVENT_COUNT - CONCURRENT_CLEANUP_EVENT_COUNT, remainingEventCount);
     }

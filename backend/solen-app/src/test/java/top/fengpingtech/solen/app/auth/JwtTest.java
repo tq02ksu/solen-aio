@@ -6,20 +6,19 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
-import org.springframework.security.core.userdetails.User;
-
-import javax.crypto.SecretKey;
-import javax.crypto.spec.SecretKeySpec;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
+import org.springframework.security.core.userdetails.User;
 
 public class JwtTest {
     public static final String JWT_SECRET = "woyebuzhidaoxiediansha";
-    public static final int JWT_TTL = 60*60*1000;  //millisecond
+    public static final int JWT_TTL = 60 * 60 * 1000; // millisecond
     public static final String JWT_ID = UUID.randomUUID().toString();
     /**
      * 由字符串生成加密key
@@ -36,6 +35,7 @@ public class JwtTest {
 
     /**
      * 创建jwt
+     *
      * @param id
      * @param issuer
      * @param subject
@@ -63,11 +63,12 @@ public class JwtTest {
 
         // 下面就是在为payload添加各种标准声明和私有声明了
         JwtBuilder builder = Jwts.builder() // 这里其实就是new一个JwtBuilder，设置jwt的body
-                .setClaims(claims)          // 如果有私有声明，一定要先设置这个自己创建的私有的声明，这个是给builder的claim赋值，一旦写在标准的声明赋值之后，就是覆盖了那些标准的声明的
-                .setId(id)                  // 设置jti(JWT ID)：是JWT的唯一标识，根据业务需要，这个可以设置为一个不重复的值，主要用来作为一次性token,从而回避重放攻击。
-                .setIssuedAt(now)           // iat: jwt的签发时间
-                .setIssuer(issuer)          // issuer：jwt签发人
-                .setSubject(subject)        // sub(Subject)：代表这个JWT的主体，即它的所有人，这个是一个json格式的字符串，可以存放什么userid，roldid之类的，作为什么用户的唯一标志。
+                .setClaims(claims) // 如果有私有声明，一定要先设置这个自己创建的私有的声明，这个是给builder的claim赋值，一旦写在标准的声明赋值之后，就是覆盖了那些标准的声明的
+                .setId(id) // 设置jti(JWT ID)：是JWT的唯一标识，根据业务需要，这个可以设置为一个不重复的值，主要用来作为一次性token,从而回避重放攻击。
+                .setIssuedAt(now) // iat: jwt的签发时间
+                .setIssuer(issuer) // issuer：jwt签发人
+                .setSubject(
+                        subject) // sub(Subject)：代表这个JWT的主体，即它的所有人，这个是一个json格式的字符串，可以存放什么userid，roldid之类的，作为什么用户的唯一标志。
                 .signWith(signatureAlgorithm, key); // 设置签名使用的签名算法和签名使用的秘钥
 
         // 设置过期时间
@@ -87,10 +88,11 @@ public class JwtTest {
      * @throws Exception
      */
     public Claims parseJWT(String jwt) throws Exception {
-        SecretKey key = generalKey();  //签名秘钥，和生成的签名的秘钥一模一样
-        Claims claims = Jwts.parser()  //得到DefaultJwtParser
-                .setSigningKey(key)                 //设置签名的秘钥
-                .parseClaimsJws(jwt).getBody();     //设置需要解析的jwt
+        SecretKey key = generalKey(); // 签名秘钥，和生成的签名的秘钥一模一样
+        Claims claims = Jwts.parser() // 得到DefaultJwtParser
+                .setSigningKey(key) // 设置签名的秘钥
+                .parseClaimsJws(jwt)
+                .getBody(); // 设置需要解析的jwt
         return claims;
     }
 
@@ -116,6 +118,5 @@ public class JwtTest {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 }

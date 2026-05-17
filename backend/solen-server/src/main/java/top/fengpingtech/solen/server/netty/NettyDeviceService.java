@@ -1,14 +1,12 @@
 package top.fengpingtech.solen.server.netty;
 
 import io.netty.channel.Channel;
-import top.fengpingtech.solen.server.DeviceService;
-import top.fengpingtech.solen.server.model.Device;
-import top.fengpingtech.solen.server.model.SoltMachineMessage;
-import top.fengpingtech.solen.server.protocol.ConnectionKeeperHandler;
-
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import top.fengpingtech.solen.server.DeviceService;
+import top.fengpingtech.solen.server.model.Device;
+import top.fengpingtech.solen.server.model.SoltMachineMessage;
 
 public class NettyDeviceService implements DeviceService {
 
@@ -55,8 +53,24 @@ public class NettyDeviceService implements DeviceService {
             device.getControlSyncs().add(latch);
             device.getConnections().forEach(conn -> {
                 Channel ch = conn.getChannel();
-                byte[] buffer = new byte[]{(byte) (stat), (byte) (0x01 - stat),
-                        0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F};
+                byte[] buffer = new byte[] {
+                    (byte) (stat),
+                    (byte) (0x01 - stat),
+                    0x02,
+                    0x03,
+                    0x04,
+                    0x05,
+                    0x06,
+                    0x07,
+                    0x08,
+                    0x09,
+                    0x0A,
+                    0x0B,
+                    0x0C,
+                    0x0D,
+                    0x0E,
+                    0x0F
+                };
 
                 SoltMachineMessage message = SoltMachineMessage.builder()
                         .header(conn.getHeader())
@@ -79,5 +93,4 @@ public class NettyDeviceService implements DeviceService {
             device.getControlSyncs().remove(latch);
         }
     }
-
 }

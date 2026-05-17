@@ -1,18 +1,17 @@
 package top.fengpingtech.solen.server.netty;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
 import io.netty.channel.embedded.EmbeddedChannel;
 import io.netty.util.AttributeKey;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.Test;
 import top.fengpingtech.solen.server.EventProcessor;
 import top.fengpingtech.solen.server.IdGenerator;
 import top.fengpingtech.solen.server.model.Event;
 import top.fengpingtech.solen.server.model.EventType;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 
 public class EventProcessorAdapterTest {
     @Test
@@ -34,4 +33,3 @@ public class EventProcessorAdapterTest {
         assertNotNull(event.getTime());
     }
 }
-

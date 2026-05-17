@@ -1,5 +1,8 @@
 package top.fengpingtech.solen.app.service;
 
+import java.util.concurrent.atomic.AtomicLong;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import org.springframework.stereotype.Component;
 import top.fengpingtech.solen.app.config.SolenServerProperties;
 import top.fengpingtech.solen.app.repository.EventRepository;
@@ -8,10 +11,6 @@ import top.fengpingtech.solen.server.EventProcessor;
 import top.fengpingtech.solen.server.SolenServer;
 import top.fengpingtech.solen.server.config.ServerProperties;
 import top.fengpingtech.solen.server.netty.SolenNettyServer;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-import java.util.concurrent.atomic.AtomicLong;
 
 @Component
 public class SolenServerStarter {
@@ -23,7 +22,8 @@ public class SolenServerStarter {
 
     private SolenServer server;
 
-    public SolenServerStarter(SolenServerProperties serverProperties, EventProcessor eventProcessor, EventRepository eventRepository) {
+    public SolenServerStarter(
+            SolenServerProperties serverProperties, EventProcessor eventProcessor, EventRepository eventRepository) {
         this.serverProperties = serverProperties;
         this.eventProcessor = eventProcessor;
         this.eventRepository = eventRepository;

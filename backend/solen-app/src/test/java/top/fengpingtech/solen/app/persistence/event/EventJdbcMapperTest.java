@@ -1,14 +1,13 @@
 package top.fengpingtech.solen.app.persistence.event;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.Collections;
+import java.util.Date;
 import org.junit.jupiter.api.Test;
 import top.fengpingtech.solen.app.domain.DeviceDomain;
 import top.fengpingtech.solen.app.domain.EventDomain;
 import top.fengpingtech.solen.server.model.EventType;
-
-import java.util.Collections;
-import java.util.Date;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class EventJdbcMapperTest {
     @Test

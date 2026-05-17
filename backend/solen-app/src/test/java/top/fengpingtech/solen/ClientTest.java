@@ -27,15 +27,15 @@ class ClientTest {
             Bootstrap b = new Bootstrap();
             b.group(group)
                     .channel(NioSocketChannel.class)
-                    //.option(ChannelOption.TCP_NODELAY, true)
+                    // .option(ChannelOption.TCP_NODELAY, true)
                     .handler(new ChannelInitializer<SocketChannel>() {
                         @Override
                         public void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline p = ch.pipeline();
-                            //p.addLast(new LoggingHandler(LogLevel.INFO));
-                            //p.addLast("encoder", new MessageEncoder());
-                            //p.addLast("decoder", new MessageDecoder());
-                            //p.addFirst(new LineBasedFrameDecoder(65535));
+                            // p.addLast(new LoggingHandler(LogLevel.INFO));
+                            // p.addLast("encoder", new MessageEncoder());
+                            // p.addLast("decoder", new MessageDecoder());
+                            // p.addFirst(new LineBasedFrameDecoder(65535));
                             p.addLast(new MessageDebugger());
                             p.addLast(new MessageDecoder());
                             p.addLast(new ClientFragmentedRegisterHandler("55520041112"));
@@ -60,14 +60,16 @@ class ClientTest {
             Channel channel = ctx.channel();
             ByteBuf buf = ctx.alloc().buffer();
             MessageEncoder encoder = new MessageEncoder();
-            encoder.encode(SoltMachineMessage.builder()
-                    .header(13175)
-                    .index(0)
-                    .idCode(12345L)
-                    .deviceId("10619030001")
-                    .cmd((short) 0)
-                    .data(new byte[] {10, 65, 0, 0, 76, 71, 0, 0})
-                    .build(), buf);
+            encoder.encode(
+                    SoltMachineMessage.builder()
+                            .header(13175)
+                            .index(0)
+                            .idCode(12345L)
+                            .deviceId("10619030001")
+                            .cmd((short) 0)
+                            .data(new byte[] {10, 65, 0, 0, 76, 71, 0, 0})
+                            .build(),
+                    buf);
             channel.writeAndFlush(buf);
         }
     }
@@ -84,14 +86,16 @@ class ClientTest {
             Channel channel = ctx.channel();
             ByteBuf buf = ctx.alloc().buffer();
             MessageEncoder encoder = new MessageEncoder();
-            encoder.encode(SoltMachineMessage.builder()
-                    .header(13175)
-                    .index(0)
-                    .idCode(12345L)
-                    .deviceId(deviceId)
-                    .cmd((short) 0)
-                    .data(new byte[] {10, 65, 0, 0, 76, 71, 0, 0})
-                    .build(), buf);
+            encoder.encode(
+                    SoltMachineMessage.builder()
+                            .header(13175)
+                            .index(0)
+                            .idCode(12345L)
+                            .deviceId(deviceId)
+                            .cmd((short) 0)
+                            .data(new byte[] {10, 65, 0, 0, 76, 71, 0, 0})
+                            .build(),
+                    buf);
 
             ByteBuf slice = buf.slice(0, 10);
             buf.retain();
@@ -162,7 +166,7 @@ class ClientTest {
                     .idCode(8389750321502775627L)
                     .deviceId(deviceId)
                     .cmd((short) 128)
-                    .data(new byte[] {(byte)0x67, (byte) 0x68, (byte)0x69,(byte) 0})
+                    .data(new byte[] {(byte) 0x67, (byte) 0x68, (byte) 0x69, (byte) 0})
                     .build();
             encoder.encode(msg, buf);
             channel.pipeline().writeAndFlush(buf);

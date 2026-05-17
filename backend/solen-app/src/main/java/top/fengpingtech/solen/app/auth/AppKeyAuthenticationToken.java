@@ -1,10 +1,9 @@
 package top.fengpingtech.solen.app.auth;
 
-import org.springframework.security.authentication.AbstractAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-
 import java.util.Date;
 import java.util.List;
+import org.springframework.security.authentication.AbstractAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 
 public class AppKeyAuthenticationToken extends AbstractAuthenticationToken {
     private String appKey;
@@ -23,7 +22,8 @@ public class AppKeyAuthenticationToken extends AbstractAuthenticationToken {
         this.requestURI = requestURI;
     }
 
-    public AppKeyAuthenticationToken(String appKey, String sign, Date requestTime, String requestURI, List<GrantedAuthority> authorities) {
+    public AppKeyAuthenticationToken(
+            String appKey, String sign, Date requestTime, String requestURI, List<GrantedAuthority> authorities) {
         super(authorities);
         this.appKey = appKey;
         this.sign = sign;

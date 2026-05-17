@@ -21,6 +21,8 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.util.concurrent.AbstractEventExecutorGroup;
 import io.netty.util.concurrent.DefaultThreadFactory;
+import java.util.Arrays;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import top.fengpingtech.solen.server.DeviceService;
@@ -32,9 +34,6 @@ import top.fengpingtech.solen.server.protocol.MessageEncoder;
 import top.fengpingtech.solen.server.protocol.PacketPreprocessor;
 import top.fengpingtech.solen.server.protocol.SerialMessagePacker;
 import top.fengpingtech.solen.server.protocol.TracingLogHandler;
-
-import java.util.Arrays;
-import java.util.List;
 
 public class SolenNettyServer implements SolenServer {
     private static final Logger logger = LoggerFactory.getLogger(SolenNettyServer.class);
@@ -58,8 +57,7 @@ public class SolenNettyServer implements SolenServer {
     }
 
     DefaultThreadFactory threadFactory(String poolName) {
-        return new DefaultThreadFactory(poolName,
-                serverProperties.getDaemon() != null && serverProperties.getDaemon());
+        return new DefaultThreadFactory(poolName, serverProperties.getDaemon() != null && serverProperties.getDaemon());
     }
 
     @Override
@@ -69,27 +67,21 @@ public class SolenNettyServer implements SolenServer {
         MultithreadEventLoopGroup bossGroup;
         MultithreadEventLoopGroup workGroup;
         if (Epoll.isAvailable()) {
-            bossGroup = new EpollEventLoopGroup(serverProperties.getIoThreads(),
-                    threadFactory("netty-boss"));
+            bossGroup = new EpollEventLoopGroup(serverProperties.getIoThreads(), threadFactory("netty-boss"));
 
-            workGroup = new EpollEventLoopGroup(serverProperties.getWorkerThreads(),
-                    threadFactory("netty-worker"));
+            workGroup = new EpollEventLoopGroup(serverProperties.getWorkerThreads(), threadFactory("netty-worker"));
             bootstrap.channel(EpollServerSocketChannel.class);
             bootstrap.option(EpollChannelOption.EPOLL_MODE, EpollMode.EDGE_TRIGGERED);
             bootstrap.childOption(EpollChannelOption.EPOLL_MODE, EpollMode.EDGE_TRIGGERED);
             logger.info("Use epoll edge trigger mode.");
         } else if (KQueue.isAvailable()) {
-            bossGroup = new KQueueEventLoopGroup(serverProperties.getIoThreads(),
-                    threadFactory("netty-boss"));
-            workGroup = new KQueueEventLoopGroup(serverProperties.getWorkerThreads(),
-                    threadFactory("netty-worker"));
+            bossGroup = new KQueueEventLoopGroup(serverProperties.getIoThreads(), threadFactory("netty-boss"));
+            workGroup = new KQueueEventLoopGroup(serverProperties.getWorkerThreads(), threadFactory("netty-worker"));
             bootstrap.channel(KQueueServerSocketChannel.class);
 
         } else {
-            bossGroup = new NioEventLoopGroup(serverProperties.getIoThreads(),
-                    threadFactory("netty-boss"));
-            workGroup = new NioEventLoopGroup(serverProperties.getWorkerThreads(),
-                    threadFactory("netty-worker"));
+            bossGroup = new NioEventLoopGroup(serverProperties.getIoThreads(), threadFactory("netty-boss"));
+            workGroup = new NioEventLoopGroup(serverProperties.getWorkerThreads(), threadFactory("netty-worker"));
 
             // ((NioEventLoopGroup) bossGroup).setIoRatio(100);
             // ((NioEventLoopGroup) workGroup).setIoRatio(100);
@@ -98,35 +90,33 @@ public class SolenNettyServer implements SolenServer {
         }
 
         // config
-//        bootstrap.option(ChannelOption.SO_BACKLOG, serverProperties.getBacklog());
-//        bootstrap.childOption(ChannelOption.SO_KEEPALIVE, serverProperties.isKeepAlive());
-//        bootstrap.childOption(ChannelOption.TCP_NODELAY, serverProperties.isTcpNoDelay());
+        //        bootstrap.option(ChannelOption.SO_BACKLOG, serverProperties.getBacklog());
+        //        bootstrap.childOption(ChannelOption.SO_KEEPALIVE, serverProperties.isKeepAlive());
+        //        bootstrap.childOption(ChannelOption.TCP_NODELAY, serverProperties.isTcpNoDelay());
         bootstrap.childOption(ChannelOption.SO_REUSEADDR, true);
         bootstrap.childOption(ChannelOption.ALLOCATOR, PooledByteBufAllocator.DEFAULT);
-//        bootstrap.childOption(ChannelOption.SO_LINGER, serverProperties.getSoLinger());
-//        bootstrap.childOption(ChannelOption.SO_SNDBUF, serverProperties.getSendBufferSize());
-//        bootstrap.childOption(ChannelOption.SO_RCVBUF, serverProperties.getReceiveBufferSize());
+        //        bootstrap.childOption(ChannelOption.SO_LINGER, serverProperties.getSoLinger());
+        //        bootstrap.childOption(ChannelOption.SO_SNDBUF, serverProperties.getSendBufferSize());
+        //        bootstrap.childOption(ChannelOption.SO_RCVBUF, serverProperties.getReceiveBufferSize());
         executors = Arrays.asList(bossGroup, workGroup);
 
-        bootstrap.group(bossGroup, workGroup).childHandler(
-                new ChannelInitializer<SocketChannel>() {
-                    @Override
-                    protected void initChannel(SocketChannel ch) {
-                        ch.pipeline()
-                                .addLast(new TracingLogHandler())
-                                .addLast(new LoggingHandler())
-                                .addLast(new ReadTimeoutHandler(600))
-                                .addLast(new PacketPreprocessor())
-                                .addLast(new ReadTimeoutHandler(600))
-                                .addLast(new MessageEncoder())
-                                .addLast(new MessageDecoder())
-                                .addLast(new ConnectionKeeperHandler(connectionHolder))
-                                .addLast(new SerialMessagePacker())
-                                .addLast(new EventProcessorAdapter(
-                                        serverProperties.getEventProcessor(),
-                                        serverProperties.getEventIdGenerator()));
-                    }
-                });
+        bootstrap.group(bossGroup, workGroup).childHandler(new ChannelInitializer<SocketChannel>() {
+            @Override
+            protected void initChannel(SocketChannel ch) {
+                ch.pipeline()
+                        .addLast(new TracingLogHandler())
+                        .addLast(new LoggingHandler())
+                        .addLast(new ReadTimeoutHandler(600))
+                        .addLast(new PacketPreprocessor())
+                        .addLast(new ReadTimeoutHandler(600))
+                        .addLast(new MessageEncoder())
+                        .addLast(new MessageDecoder())
+                        .addLast(new ConnectionKeeperHandler(connectionHolder))
+                        .addLast(new SerialMessagePacker())
+                        .addLast(new EventProcessorAdapter(
+                                serverProperties.getEventProcessor(), serverProperties.getEventIdGenerator()));
+            }
+        });
         try {
             future = bootstrap.bind(serverProperties.getPort()).sync();
         } catch (InterruptedException e) {
@@ -148,8 +138,10 @@ public class SolenNettyServer implements SolenServer {
         }
 
         try {
-            future.channel().close().addListener(
-                    (f) -> executors.forEach(AbstractEventExecutorGroup::shutdownGracefully)).sync();
+            future.channel()
+                    .close()
+                    .addListener((f) -> executors.forEach(AbstractEventExecutorGroup::shutdownGracefully))
+                    .sync();
         } catch (InterruptedException e) {
             logger.info("error while close server!", e);
         }

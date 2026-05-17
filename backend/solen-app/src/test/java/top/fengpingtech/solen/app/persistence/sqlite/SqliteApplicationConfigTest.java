@@ -1,11 +1,11 @@
 package top.fengpingtech.solen.app.persistence.sqlite;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import top.fengpingtech.solen.app.SolenApplication;
-
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest(classes = SolenApplication.class)
 class SqliteApplicationConfigTest {

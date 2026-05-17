@@ -1,16 +1,5 @@
 package top.fengpingtech.solen.app.persistence.event;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.stereotype.Component;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.support.TransactionTemplate;
-import top.fengpingtech.solen.app.domain.EventDomain;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.sql.PreparedStatement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -20,6 +9,16 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
+import top.fengpingtech.solen.app.domain.EventDomain;
 
 @Component
 public class EventJdbcWriter {
@@ -44,11 +43,12 @@ public class EventJdbcWriter {
 
     private Thread workerThread;
 
-    public EventJdbcWriter(JdbcTemplate jdbcTemplate,
-                           PlatformTransactionManager transactionManager,
-                           @Value("${solen.event.writer.queue-capacity:20000}") int queueCapacity,
-                           @Value("${solen.event.writer.batch-size:200}") int batchSize,
-                           @Value("${solen.event.writer.flush-interval-ms:200}") long flushIntervalMs) {
+    public EventJdbcWriter(
+            JdbcTemplate jdbcTemplate,
+            PlatformTransactionManager transactionManager,
+            @Value("${solen.event.writer.queue-capacity:20000}") int queueCapacity,
+            @Value("${solen.event.writer.batch-size:200}") int batchSize,
+            @Value("${solen.event.writer.flush-interval-ms:200}") long flushIntervalMs) {
         this.jdbcTemplate = jdbcTemplate;
         this.mapper = new EventJdbcMapper();
         this.transactionTemplate = new TransactionTemplate(transactionManager);

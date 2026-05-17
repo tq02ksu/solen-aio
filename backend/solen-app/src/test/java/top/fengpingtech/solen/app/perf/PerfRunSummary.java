@@ -18,10 +18,7 @@ final class PerfRunSummary {
     String toSummaryLine() {
         StringBuilder builder = new StringBuilder(variant.name());
         for (Map.Entry<String, String> entry : values.entrySet()) {
-            builder.append(" ")
-                    .append(entry.getKey())
-                    .append("=")
-                    .append(entry.getValue());
+            builder.append(" ").append(entry.getKey()).append("=").append(entry.getValue());
         }
         return builder.toString();
     }

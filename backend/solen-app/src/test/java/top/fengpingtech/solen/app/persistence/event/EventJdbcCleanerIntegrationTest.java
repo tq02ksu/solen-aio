@@ -1,5 +1,11 @@
 package top.fengpingtech.solen.app.persistence.event;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,17 +20,10 @@ import top.fengpingtech.solen.app.repository.DeviceRepository;
 import top.fengpingtech.solen.app.repository.EventRepository;
 import top.fengpingtech.solen.server.model.EventType;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 @SpringBootTest(classes = SolenApplication.class)
 class EventJdbcCleanerIntegrationTest {
-    private static final String DATASOURCE_URL = "jdbc:sqlite:/tmp/opencode/event-jdbc-cleaner-"
-            + UUID.randomUUID() + ".sqlite";
+    private static final String DATASOURCE_URL =
+            "jdbc:sqlite:/tmp/opencode/event-jdbc-cleaner-" + UUID.randomUUID() + ".sqlite";
 
     @DynamicPropertySource
     static void overrideDatasource(DynamicPropertyRegistry registry) {
@@ -86,8 +85,7 @@ class EventJdbcCleanerIntegrationTest {
                         .type(EventType.MESSAGE_RECEIVING)
                         .time(new Date(1_750_000_000_000L))
                         .details(Collections.singletonMap("content", "cutoff"))
-                        .build()
-        ));
+                        .build()));
 
         int deleted = eventJdbcCleaner.deleteBefore(new Date(1_750_000_000_000L));
 
@@ -95,11 +93,19 @@ class EventJdbcCleanerIntegrationTest {
         assertEquals(2L, eventRepository.count());
         assertEquals(Long.valueOf(2003L), eventRepository.getMaxId());
         assertEquals(false, eventRepository.findById(2001L).isPresent());
-        assertEquals("new", eventRepository.findById(2002L)
-                .orElseThrow(() -> new AssertionError("missing retained new event"))
-                .getDetails().get("content"));
-        assertEquals("cutoff", eventRepository.findById(2003L)
-                .orElseThrow(() -> new AssertionError("missing cutoff event"))
-                .getDetails().get("content"));
+        assertEquals(
+                "new",
+                eventRepository
+                        .findById(2002L)
+                        .orElseThrow(() -> new AssertionError("missing retained new event"))
+                        .getDetails()
+                        .get("content"));
+        assertEquals(
+                "cutoff",
+                eventRepository
+                        .findById(2003L)
+                        .orElseThrow(() -> new AssertionError("missing cutoff event"))
+                        .getDetails()
+                        .get("content"));
     }
 }

@@ -5,6 +5,11 @@ import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import io.netty.util.AttributeKey;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import top.fengpingtech.solen.server.EventProcessor;
@@ -17,12 +22,6 @@ import top.fengpingtech.solen.server.model.EventType;
 import top.fengpingtech.solen.server.model.LocationEvent;
 import top.fengpingtech.solen.server.model.MessageEvent;
 import top.fengpingtech.solen.server.model.SoltMachineMessage;
-
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
 
 public class EventProcessorAdapter extends ChannelDuplexHandler {
     private static final Logger logger = LoggerFactory.getLogger(EventProcessorAdapter.class);
@@ -56,8 +55,7 @@ public class EventProcessorAdapter extends ChannelDuplexHandler {
     private void processMessage(ChannelHandlerContext ctx, SoltMachineMessage msg) {
         if (msg.getCmd() == 0) {
             ByteBuf data = ctx.alloc().heapBuffer(msg.getData().length).writeBytes(msg.getData());
-            isTrue(data.readableBytes() == 8,
-                    "register packet length expect to 8, but is " + data.readableBytes());
+            isTrue(data.readableBytes() == 8, "register packet length expect to 8, but is " + data.readableBytes());
             long lac = data.readUnsignedIntLE();
             long ci = data.readUnsignedIntLE();
             data.release();
@@ -120,9 +118,14 @@ public class EventProcessorAdapter extends ChannelDuplexHandler {
             String iccId = new String(iccIdBuf);
 
             data.release();
-            logger.info("receiving gprs data: accessType={}, imei={}, cdma={}, "
-                            + "networkType={}, stations={}, iccId={}",
-                    accessType, imei, cdma, networkType, stations, iccId);
+            logger.info(
+                    "receiving gprs data: accessType={}, imei={}, cdma={}, " + "networkType={}, stations={}, iccId={}",
+                    accessType,
+                    imei,
+                    cdma,
+                    networkType,
+                    stations,
+                    iccId);
 
             LocationEvent event = new LocationEvent();
             setEventValue(msg, event, EventType.LOCATION_CHANGE);
@@ -149,20 +152,18 @@ public class EventProcessorAdapter extends ChannelDuplexHandler {
         event.setTime(new Date());
     }
 
-
     private List<BaseStation> parseStations(ByteBuf data) {
         List<BaseStation> stations = new ArrayList<>();
 
         for (int i = 0; i < 6; i++) {
-            stations.add(
-                    BaseStation.builder()
-                            .valid(data.readByte())
-                            .mcc(data.readShortLE())
-                            .mnc(data.readByte())
-                            .lac(data.readIntLE())
-                            .cellId(data.readIntLE())
-                            .signal(data.readShortLE())
-                            .build());
+            stations.add(BaseStation.builder()
+                    .valid(data.readByte())
+                    .mcc(data.readShortLE())
+                    .mnc(data.readByte())
+                    .lac(data.readIntLE())
+                    .cellId(data.readIntLE())
+                    .signal(data.readShortLE())
+                    .build());
         }
         return stations;
     }

@@ -3,13 +3,12 @@ package top.fengpingtech.solen.server.protocol;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.ByteToMessageDecoder;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import top.fengpingtech.solen.server.model.SoltMachineMessage;
-
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import top.fengpingtech.solen.server.model.SoltMachineMessage;
 
 public class MessageDecoder extends ByteToMessageDecoder {
     private static final Logger logger = LoggerFactory.getLogger(MessageDecoder.class);
@@ -38,7 +37,7 @@ public class MessageDecoder extends ByteToMessageDecoder {
 
         byte calc = 0;
 
-        for (int i = 0; i < length - 1; i ++) {
+        for (int i = 0; i < length - 1; i++) {
             calc ^= msg.readByte();
         }
 

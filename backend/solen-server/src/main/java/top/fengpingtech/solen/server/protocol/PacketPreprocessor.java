@@ -3,10 +3,10 @@ package top.fengpingtech.solen.server.protocol;
 import io.netty.buffer.ByteBuf;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.handler.codec.LengthFieldBasedFrameDecoder;
-
 import java.nio.ByteOrder;
 
 /**
+ *
  *
  * <pre>
  *     + ------------- + ------------------------------------ + ------------------------------- +
@@ -36,10 +36,8 @@ public class PacketPreprocessor extends LengthFieldBasedFrameDecoder {
 
     private int segments = 0;
 
-
     public PacketPreprocessor() {
-        super(BYTE_ORDER, MAX_FRAME_LENGTH, LENGTH_FIELD_OFFSET, LENGTH_FIELD_LENGTH, LENGTH_ADJUSTMENT,
-                0, false);
+        super(BYTE_ORDER, MAX_FRAME_LENGTH, LENGTH_FIELD_OFFSET, LENGTH_FIELD_LENGTH, LENGTH_ADJUSTMENT, 0, false);
     }
 
     int getFrameLength(ByteBuf in) {
@@ -60,11 +58,11 @@ public class PacketPreprocessor extends LengthFieldBasedFrameDecoder {
         }
 
         for (int frameLength = getFrameLength(in);
-             frameLength > 0 && in.readableBytes() >= frameLength + LENGTH_FIELD_OFFSET;
-             frameLength = getFrameLength(in)) {
+                frameLength > 0 && in.readableBytes() >= frameLength + LENGTH_FIELD_OFFSET;
+                frameLength = getFrameLength(in)) {
             // calculate checksum
             byte calc = 0;
-            for (int i = 0; i < frameLength + LENGTH_FIELD_OFFSET - 1; i ++) {
+            for (int i = 0; i < frameLength + LENGTH_FIELD_OFFSET - 1; i++) {
                 calc ^= in.getByte(in.readerIndex() + i);
             }
             byte checksum = in.getByte(in.readerIndex() + frameLength + LENGTH_FIELD_OFFSET - 1);
@@ -80,7 +78,7 @@ public class PacketPreprocessor extends LengthFieldBasedFrameDecoder {
             }
         }
 
-        segments ++;
+        segments++;
         if (segments > MAX_SEGMENTS && in.isReadable()) {
             // skip to header
             stripBeforeHeader(ctx, in, 1);
@@ -97,7 +95,9 @@ public class PacketPreprocessor extends LengthFieldBasedFrameDecoder {
             if (header == 0x3377) {
                 if (idx > beforeRead) {
                     ByteBuf buf = in.slice(beforeRead, idx - beforeRead);
-                    MessageDebugger.logByteBuf(buf, "DISCARD(" + (idx - beforeRead) + ")",
+                    MessageDebugger.logByteBuf(
+                            buf,
+                            "DISCARD(" + (idx - beforeRead) + ")",
                             ctx.channel().toString());
                 }
                 break;

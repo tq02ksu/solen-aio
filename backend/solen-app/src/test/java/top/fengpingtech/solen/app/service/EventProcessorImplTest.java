@@ -1,5 +1,18 @@
 package top.fengpingtech.solen.app.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import top.fengpingtech.solen.app.domain.ConnectionStatus;
 import top.fengpingtech.solen.app.domain.DeviceDomain;
@@ -10,32 +23,14 @@ import top.fengpingtech.solen.server.model.Event;
 import top.fengpingtech.solen.server.model.EventType;
 import top.fengpingtech.solen.server.model.LocationEvent;
 
-import java.lang.reflect.Method;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 class EventProcessorImplTest {
     @Test
     void processLocationChangeUpdatesDeviceWhenStoredCoordinatesAreNull() throws Exception {
         DeviceRepository deviceRepository = mock(DeviceRepository.class);
         ConnectionRepository connectionRepository = mock(ConnectionRepository.class);
         EventJdbcWriter eventJdbcWriter = mock(EventJdbcWriter.class);
-        EventProcessorImpl processor = new EventProcessorImpl(
-                deviceRepository,
-                connectionRepository,
-                eventJdbcWriter,
-                null
-        );
+        EventProcessorImpl processor =
+                new EventProcessorImpl(deviceRepository, connectionRepository, eventJdbcWriter, null);
         DeviceDomain device = DeviceDomain.builder()
                 .deviceId("40623100019")
                 .status(ConnectionStatus.NORMAL)
@@ -67,10 +62,10 @@ class EventProcessorImplTest {
     }
 
     @SuppressWarnings("unchecked")
-    private List<top.fengpingtech.solen.app.domain.EventDomain> invokeProcessEventsInternal(EventProcessorImpl processor, List<Event> events) throws Exception {
+    private List<top.fengpingtech.solen.app.domain.EventDomain> invokeProcessEventsInternal(
+            EventProcessorImpl processor, List<Event> events) throws Exception {
         Method method = EventProcessorImpl.class.getDeclaredMethod("processEventsInternal", List.class);
         method.setAccessible(true);
         return (List<top.fengpingtech.solen.app.domain.EventDomain>) method.invoke(processor, events);
     }
 }
-

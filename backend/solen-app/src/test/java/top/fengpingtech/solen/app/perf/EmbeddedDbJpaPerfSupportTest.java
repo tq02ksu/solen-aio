@@ -1,15 +1,14 @@
 package top.fengpingtech.solen.app.perf;
 
-import org.junit.jupiter.api.Test;
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.file.Path;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 
 class EmbeddedDbJpaPerfSupportTest {
     @Test
@@ -50,7 +49,8 @@ class EmbeddedDbJpaPerfSupportTest {
     private static void assertDatasourceDriver(EmbeddedDbVariant variant, String expectedDriverClassName) {
         EmbeddedDbJpaPerfContext context = EmbeddedDbJpaPerfSupport.startContext(variant);
         try {
-            assertEquals(expectedDriverClassName,
+            assertEquals(
+                    expectedDriverClassName,
                     context.applicationContext().getEnvironment().getProperty("spring.datasource.driver-class-name"));
         } finally {
             context.close();
@@ -71,9 +71,8 @@ class EmbeddedDbJpaPerfSupportTest {
     void reportsPreloadedDevicesForHsqldbContext() {
         EmbeddedDbJpaPerfContext context = EmbeddedDbJpaPerfSupport.startContext(EmbeddedDbVariant.HSQLDB_JPA);
         try {
-            List<String> deviceIds = context.jdbcTemplate().queryForList(
-                    "select device_id from device order by device_id limit 5",
-                    String.class);
+            List<String> deviceIds = context.jdbcTemplate()
+                    .queryForList("select device_id from device order by device_id limit 5", String.class);
             assertEquals(Collections.emptyList(), deviceIds);
         } finally {
             context.close();

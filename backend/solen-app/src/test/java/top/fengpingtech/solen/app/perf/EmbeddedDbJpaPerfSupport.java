@@ -1,10 +1,21 @@
 package top.fengpingtech.solen.app.perf;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import javax.sql.DataSource;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.builder.SpringApplicationBuilder;
+import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -15,6 +26,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.datasource.DriverManagerDataSource;
 import org.springframework.jdbc.datasource.init.ResourceDatabasePopulator;
 import org.springframework.orm.jpa.JpaTransactionManager;
 import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
@@ -28,24 +41,8 @@ import top.fengpingtech.solen.app.repository.DeviceRepository;
 import top.fengpingtech.solen.app.repository.EventRepository;
 import top.fengpingtech.solen.server.model.EventType;
 
-import javax.sql.DataSource;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import org.springframework.jdbc.datasource.DriverManagerDataSource;
-import org.springframework.jdbc.core.JdbcTemplate;
-
 final class EmbeddedDbJpaPerfSupport {
-    private EmbeddedDbJpaPerfSupport() {
-    }
+    private EmbeddedDbJpaPerfSupport() {}
 
     static Path createDatabasePath(String prefix, String suffix) throws IOException {
         Path directory = Files.createTempDirectory(prefix);
@@ -56,7 +53,8 @@ final class EmbeddedDbJpaPerfSupport {
 
     static EmbeddedDbJpaPerfContext startContext(EmbeddedDbVariant variant) {
         try {
-            Path databasePath = createDatabasePath(variant.name().toLowerCase(), variant == EmbeddedDbVariant.HSQLDB_JPA ? "" : ".sqlite");
+            Path databasePath = createDatabasePath(
+                    variant.name().toLowerCase(), variant == EmbeddedDbVariant.HSQLDB_JPA ? "" : ".sqlite");
             Map<String, Object> properties = new LinkedHashMap<>();
             properties.putAll(EmbeddedDbJpaPerfProperties.forVariant(variant, databasePath));
             properties.put("perf.variant", variant.name());
@@ -87,15 +85,24 @@ final class EmbeddedDbJpaPerfSupport {
 
             PerfRunSummary summary = new PerfRunSummary(variant);
             long writeBatchNanos = measureWriteBatch(context);
-            summary.add("write-batch", writeBatchNanos,
-                    computeOperationsPerSecond(EmbeddedDbJpaPerfWorkload.WRITE_BATCH_DEVICE_COUNT
-                            * EmbeddedDbJpaPerfWorkload.WRITE_BATCH_EVENTS_PER_DEVICE, writeBatchNanos));
+            summary.add(
+                    "write-batch",
+                    writeBatchNanos,
+                    computeOperationsPerSecond(
+                            EmbeddedDbJpaPerfWorkload.WRITE_BATCH_DEVICE_COUNT
+                                    * EmbeddedDbJpaPerfWorkload.WRITE_BATCH_EVENTS_PER_DEVICE,
+                            writeBatchNanos));
             long startupMaxIdNanos = measureStartupMaxId(context);
             summary.add("startup-max-id", startupMaxIdNanos, computeOperationsPerSecond(1, startupMaxIdNanos));
             long recentPageNanos = measureRecentPage(context);
-            summary.add("page-recent", recentPageNanos, computeOperationsPerSecond(EmbeddedDbJpaPerfWorkload.PAGE_SIZE, recentPageNanos));
+            summary.add(
+                    "page-recent",
+                    recentPageNanos,
+                    computeOperationsPerSecond(EmbeddedDbJpaPerfWorkload.PAGE_SIZE, recentPageNanos));
             long retentionDeleteNanos = measureRetentionDelete(context);
-            summary.add("cleanup-retention", retentionDeleteNanos,
+            summary.add(
+                    "cleanup-retention",
+                    retentionDeleteNanos,
                     computeOperationsPerSecond(EmbeddedDbJpaPerfWorkload.DEVICE_COUNT * 170L, retentionDeleteNanos));
             return summary;
         } finally {
@@ -110,33 +117,36 @@ final class EmbeddedDbJpaPerfSupport {
     static void seedDataset(EmbeddedDbJpaPerfContext context, int deviceCount, int eventsPerDevice) {
         for (int deviceIndex = 0; deviceIndex < deviceCount; deviceIndex++) {
             String deviceId = String.format("device-%04d", deviceIndex);
-            context.jdbcTemplate().update(
-                    "insert into device (device_id, status, lac, ci, input_stat, output_stat, rssi, voltage, temperature, gravity, uptime, lat, lng) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-                    deviceId,
-                    ConnectionStatus.NORMAL.name(),
-                    1L,
-                    1L,
-                    0,
-                    0,
-                    -60,
-                    3.7d,
-                    25.0d,
-                    0,
-                    100,
-                    0.0d,
-                    0.0d);
+            context.jdbcTemplate()
+                    .update(
+                            "insert into device (device_id, status, lac, ci, input_stat, output_stat, rssi, voltage, temperature, gravity, uptime, lat, lng) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                            deviceId,
+                            ConnectionStatus.NORMAL.name(),
+                            1L,
+                            1L,
+                            0,
+                            0,
+                            -60,
+                            3.7d,
+                            25.0d,
+                            0,
+                            100,
+                            0.0d,
+                            0.0d);
 
-            DeviceDomain device = context.deviceRepository().findById(deviceId)
+            DeviceDomain device = context.deviceRepository()
+                    .findById(deviceId)
                     .orElseThrow(() -> new IllegalStateException("missing seeded device " + deviceId));
 
             for (int eventIndex = 0; eventIndex < eventsPerDevice; eventIndex++) {
-                context.eventRepository().save(EventDomain.builder()
-                        .eventId((long) deviceIndex * eventsPerDevice + eventIndex + 1)
-                        .device(device)
-                        .type(EventType.MESSAGE_RECEIVING)
-                        .time(new Date(1_715_831_200_000L + eventIndex * 1_000L))
-                        .details(Collections.singletonMap("content", "payload"))
-                        .build());
+                context.eventRepository()
+                        .save(EventDomain.builder()
+                                .eventId((long) deviceIndex * eventsPerDevice + eventIndex + 1)
+                                .device(device)
+                                .type(EventType.MESSAGE_RECEIVING)
+                                .time(new Date(1_715_831_200_000L + eventIndex * 1_000L))
+                                .details(Collections.singletonMap("content", "payload"))
+                                .build());
             }
         }
     }
@@ -167,9 +177,12 @@ final class EmbeddedDbJpaPerfSupport {
         List<EventDomain> batch = new ArrayList<>();
         long nextEventId = maxId == null ? 1L : maxId + 1L;
         for (int deviceIndex = 0; deviceIndex < EmbeddedDbJpaPerfWorkload.WRITE_BATCH_DEVICE_COUNT; deviceIndex++) {
-            DeviceDomain device = context.deviceRepository().findById(String.format("device-%04d", deviceIndex))
+            DeviceDomain device = context.deviceRepository()
+                    .findById(String.format("device-%04d", deviceIndex))
                     .orElseThrow(() -> new IllegalStateException("missing seeded device for write batch"));
-            for (int eventIndex = 0; eventIndex < EmbeddedDbJpaPerfWorkload.WRITE_BATCH_EVENTS_PER_DEVICE; eventIndex++) {
+            for (int eventIndex = 0;
+                    eventIndex < EmbeddedDbJpaPerfWorkload.WRITE_BATCH_EVENTS_PER_DEVICE;
+                    eventIndex++) {
                 batch.add(EventDomain.builder()
                         .eventId(nextEventId++)
                         .device(device)
@@ -181,7 +194,8 @@ final class EmbeddedDbJpaPerfSupport {
         }
 
         long start = System.nanoTime();
-        context.transactionTemplate().execute(status -> context.eventRepository().saveAll(batch));
+        context.transactionTemplate()
+                .execute(status -> context.eventRepository().saveAll(batch));
         return System.nanoTime() - start;
     }
 
@@ -221,8 +235,7 @@ final class EmbeddedDbJpaPerfSupport {
     @SpringBootApplication
     @ConditionalOnProperty(name = "perf.variant")
     @Import(TestJpaConfiguration.class)
-    static class TestJpaApplication {
-    }
+    static class TestJpaApplication {}
 
     @TestConfiguration
     @ConditionalOnProperty(name = "perf.variant")
@@ -233,7 +246,8 @@ final class EmbeddedDbJpaPerfSupport {
         @Primary
         DataSource dataSource(org.springframework.core.env.Environment environment) {
             DriverManagerDataSource dataSource = new DriverManagerDataSource();
-            dataSource.setDriverClassName(DataAccessUtils.singleResult(Collections.singletonList(environment.getProperty("spring.datasource.driver-class-name"))));
+            dataSource.setDriverClassName(DataAccessUtils.singleResult(
+                    Collections.singletonList(environment.getProperty("spring.datasource.driver-class-name"))));
             dataSource.setUrl(environment.getProperty("spring.datasource.url"));
             dataSource.setUsername(environment.getProperty("spring.datasource.username"));
             dataSource.setPassword(environment.getProperty("spring.datasource.password"));
@@ -248,9 +262,10 @@ final class EmbeddedDbJpaPerfSupport {
         }
 
         @Bean
-        LocalContainerEntityManagerFactoryBean entityManagerFactory(DataSource dataSource,
-                                                                   org.springframework.core.env.Environment environment) {
-            LocalContainerEntityManagerFactoryBean entityManagerFactoryBean = new LocalContainerEntityManagerFactoryBean();
+        LocalContainerEntityManagerFactoryBean entityManagerFactory(
+                DataSource dataSource, org.springframework.core.env.Environment environment) {
+            LocalContainerEntityManagerFactoryBean entityManagerFactoryBean =
+                    new LocalContainerEntityManagerFactoryBean();
             entityManagerFactoryBean.setDataSource(dataSource);
             entityManagerFactoryBean.setPackagesToScan("top.fengpingtech.solen.app.domain");
             entityManagerFactoryBean.setJpaVendorAdapter(new HibernateJpaVendorAdapter());
@@ -260,8 +275,12 @@ final class EmbeddedDbJpaPerfSupport {
             properties.put("hibernate.jdbc.batch_size", "200");
             properties.put("hibernate.order_inserts", "true");
             properties.put("hibernate.order_updates", "true");
-            properties.put("hibernate.physical_naming_strategy", "org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy");
-            properties.put("hibernate.implicit_naming_strategy", "org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy");
+            properties.put(
+                    "hibernate.physical_naming_strategy",
+                    "org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy");
+            properties.put(
+                    "hibernate.implicit_naming_strategy",
+                    "org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy");
             String databasePlatform = environment.getProperty("spring.jpa.database-platform");
             if (databasePlatform != null) {
                 properties.put("hibernate.dialect", databasePlatform);
