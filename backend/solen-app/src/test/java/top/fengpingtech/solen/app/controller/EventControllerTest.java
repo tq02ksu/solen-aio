@@ -80,6 +80,12 @@ class EventControllerTest extends SolenApplicationTests {
         assertIterableEquals(
                 List.of("55500002", "55500001"),
                 secondPage.stream().map(EventBean::getDeviceId).toList());
+
+        request.setPageNo(10);
+
+        List<EventBean> tenthPage = eventController.list(request);
+
+        assertEquals(0, tenthPage.size());
     }
 
     @Test

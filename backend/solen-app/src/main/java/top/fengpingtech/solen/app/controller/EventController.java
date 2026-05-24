@@ -35,7 +35,7 @@ public class EventController {
 
     @RequestMapping("/event/list")
     public List<EventBean> list(EventQueryRequest request) {
-        if (request.getPageNo() == null) {
+        if (request.getPageNo() == null || request.getPageNo() < 1) {
             request.setPageNo(1);
         }
 

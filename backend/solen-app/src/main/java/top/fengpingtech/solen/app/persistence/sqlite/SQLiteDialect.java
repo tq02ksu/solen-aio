@@ -4,8 +4,29 @@ import java.sql.Types;
 import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.identity.IdentityColumnSupport;
 import org.hibernate.dialect.identity.IdentityColumnSupportImpl;
+import org.hibernate.dialect.pagination.AbstractLimitHandler;
+import org.hibernate.dialect.pagination.LimitHandler;
+import org.hibernate.dialect.pagination.LimitHelper;
+import org.hibernate.engine.spi.RowSelection;
 
 public class SQLiteDialect extends Dialect {
+    private static final LimitHandler LIMIT_HANDLER = new AbstractLimitHandler() {
+        @Override
+        public String processSql(String sql, RowSelection selection) {
+            return sql + (LimitHelper.hasFirstRow(selection) ? " limit ? offset ?" : " limit ?");
+        }
+
+        @Override
+        public boolean supportsLimit() {
+            return true;
+        }
+
+        @Override
+        public boolean bindLimitParametersInReverseOrder() {
+            return true;
+        }
+    };
+
     public SQLiteDialect() {
         registerColumnType(Types.BIT, "boolean");
         registerColumnType(Types.TINYINT, "tinyint");
@@ -62,8 +83,8 @@ public class SQLiteDialect extends Dialect {
     }
 
     @Override
-    public String getLimitString(String query, boolean hasOffset) {
-        return query + (hasOffset ? " limit ? offset ?" : " limit ?");
+    public LimitHandler getLimitHandler() {
+        return LIMIT_HANDLER;
     }
 
     @Override
