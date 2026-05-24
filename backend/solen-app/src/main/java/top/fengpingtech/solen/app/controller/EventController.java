@@ -5,9 +5,6 @@ import java.util.Arrays;
 import java.util.List;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -43,8 +40,10 @@ public class EventController {
             request.setPageSize(100);
         }
 
-        PageRequest page =
-                PageRequest.of(request.getPageNo() - 1, request.getPageSize(), Sort.by(Sort.Direction.DESC, "eventId"));
+        if (request.getPageNo() >= 100) {
+            return List.of();
+        }
+
         Specification<EventDomain> spec = (root, cq, cb) -> {
             fetchDeviceIfNeeded(root, cq);
             List<Predicate> list = new ArrayList<>();
@@ -74,8 +73,9 @@ public class EventController {
             return cb.and(list.toArray(new Predicate[0]));
         };
 
-        Page<EventDomain> events = eventRepository.findAll(spec, page);
-        return eventMapper.mapToBean(events.getContent());
+        int offset = (request.getPageNo() - 1) * request.getPageSize();
+        List<EventDomain> events = eventRepository.findPage(spec, offset, request.getPageSize());
+        return eventMapper.mapToBean(events);
     }
 
     private void fetchDeviceIfNeeded(Root<EventDomain> root, javax.persistence.criteria.CriteriaQuery<?> cq) {

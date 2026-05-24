@@ -86,10 +86,16 @@ class EventControllerTest extends SolenApplicationTests {
         List<EventBean> tenthPage = eventController.list(request);
 
         assertEquals(0, tenthPage.size());
+
+        request.setPageNo(100);
+
+        List<EventBean> cappedPage = eventController.list(request);
+
+        assertEquals(0, cappedPage.size());
     }
 
     @Test
-    void shouldNotTriggerNPlusOneWhenMappingEventPage() {
+    void shouldQueryEventPageWithoutCountAndNPlusOne() {
         Statistics statistics = sessionFactory().getStatistics();
         statistics.setStatisticsEnabled(true);
         statistics.clear();
@@ -101,7 +107,7 @@ class EventControllerTest extends SolenApplicationTests {
         List<EventBean> page = eventController.list(request);
 
         assertEquals(2, page.size());
-        assertEquals(2, statistics.getPrepareStatementCount());
+        assertEquals(1, statistics.getPrepareStatementCount());
         assertEquals(0, statistics.getEntityFetchCount());
     }
 

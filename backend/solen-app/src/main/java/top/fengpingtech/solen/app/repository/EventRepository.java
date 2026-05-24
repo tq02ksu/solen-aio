@@ -9,7 +9,8 @@ import org.springframework.stereotype.Repository;
 import top.fengpingtech.solen.app.domain.EventDomain;
 
 @Repository
-public interface EventRepository extends JpaRepository<EventDomain, Long>, JpaSpecificationExecutor<EventDomain> {
+public interface EventRepository
+        extends JpaRepository<EventDomain, Long>, JpaSpecificationExecutor<EventDomain>, EventRepositoryCustom {
     @Query("select max(e.eventId) from EventDomain e")
     Long getMaxId();
 
