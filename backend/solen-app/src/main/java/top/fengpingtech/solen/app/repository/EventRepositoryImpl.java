@@ -20,7 +20,7 @@ public class EventRepositoryImpl implements EventRepositoryCustom {
         CriteriaQuery<EventDomain> query = cb.createQuery(EventDomain.class);
         Root<EventDomain> root = query.from(EventDomain.class);
 
-        query.select(root).distinct(true);
+        query.select(root);
         query.where(specification.toPredicate(root, query, cb));
         query.orderBy(cb.desc(root.get("eventId")));
 
