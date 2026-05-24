@@ -6,7 +6,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.lang.reflect.Proxy;
 import java.sql.PreparedStatement;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.hibernate.engine.spi.RowSelection;
 import org.junit.jupiter.api.Test;
 
@@ -32,12 +34,16 @@ class SQLiteDialectTest {
         RowSelection selection = new RowSelection();
         selection.setFirstRow(18);
         selection.setMaxRows(2);
-        List<Integer> boundValues = new ArrayList<>();
+        List<Integer> boundIndexes = new ArrayList<>();
+        Map<Integer, Integer> boundValues = new HashMap<>();
 
         PreparedStatement statement = (PreparedStatement) Proxy.newProxyInstance(
                 getClass().getClassLoader(), new Class<?>[] {PreparedStatement.class}, (proxy, method, args) -> {
                     if ("setInt".equals(method.getName())) {
-                        boundValues.add((Integer) args[1]);
+                        Integer index = (Integer) args[0];
+                        Integer value = (Integer) args[1];
+                        boundIndexes.add(index);
+                        boundValues.put(index, value);
                         return null;
                     }
 
@@ -62,6 +68,7 @@ class SQLiteDialectTest {
 
         dialect.getLimitHandler().bindLimitParametersAtEndOfQuery(selection, statement, 1);
 
-        assertEquals(List.of(2, 18), boundValues);
+        assertEquals(2, boundValues.get(1));
+        assertEquals(18, boundValues.get(2));
     }
 }
