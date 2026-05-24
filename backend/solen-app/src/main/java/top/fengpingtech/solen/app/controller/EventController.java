@@ -3,9 +3,8 @@ package top.fengpingtech.solen.app.controller;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
 import javax.persistence.criteria.Predicate;
-import org.springframework.beans.BeanUtils;
+import javax.persistence.criteria.Root;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
@@ -47,6 +46,7 @@ public class EventController {
         PageRequest page =
                 PageRequest.of(request.getPageNo() - 1, request.getPageSize(), Sort.by(Sort.Direction.DESC, "eventId"));
         Specification<EventDomain> spec = (root, cq, cb) -> {
+            fetchDeviceIfNeeded(root, cq);
             List<Predicate> list = new ArrayList<>();
             if (request.getStartTime() != null) {
                 list.add(cb.greaterThanOrEqualTo(root.get("time"), request.getStartTime()));
@@ -78,13 +78,10 @@ public class EventController {
         return eventMapper.mapToBean(events.getContent());
     }
 
-    private List<EventBean> convert(List<EventDomain> content) {
-        return content.stream()
-                .map(domain -> {
-                    EventBean bean = new EventBean();
-                    BeanUtils.copyProperties(domain, bean);
-                    return bean;
-                })
-                .collect(Collectors.toList());
+    private void fetchDeviceIfNeeded(Root<EventDomain> root, javax.persistence.criteria.CriteriaQuery<?> cq) {
+        Class<?> resultType = cq.getResultType();
+        if (resultType != Long.class && resultType != long.class) {
+            root.fetch("device");
+        }
     }
 }
